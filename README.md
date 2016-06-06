@@ -1,8 +1,9 @@
-# mvc-ntier-demo
+# mvc-ntier-demo_beta 0.5
 ## Preview
 ![Lance](http://portal.wegames.tw/Demo.png)
 --
 ---
 # Remark
 1. Using N-Tier With AspNetMVC
-2. VideoPreview Onlon
+2. Dependency injection with Autofac
+3. Video Preview Online
