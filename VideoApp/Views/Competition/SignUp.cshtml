@@ -1,0 +1,143 @@
+﻿@model VideoApp.Entity.pli_formData
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>SignUp</title>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2">
+                <div style="display: none; position: absolute; top: 70%; left: 50%; text-align: center; font-size: 24px; width: 600px; z-index: 999999; margin-top: -100px; margin-left: -300px; font-family: '微軟正黑體';" class="bb-alert alert alert-danger alert-dismissible fade in">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <span id="spanAlert">
+                        刪除提醒
+                    </span>
+                </div>
+                <div class="modal-body">
+                    <h2 style="text-align: center">活動資料填寫</h2>
+                    <hr class="star-primary">
+                    <form name="sentMessage" enctype="multipart/form-data" id="contactForm" novalidate>
+                        <div class="row control-group">
+                            <div class="form-group col-xs-12 floating-label-form-group controls">
+                                <label>姓名</label>
+                                <input type="text" class="form-control" placeholder="姓名" id="pli_videoUName" name="pli_videoUName"  required data-validation-required-message="請輸入您的作者名稱.">
+                                <p class="help-block text-danger"></p>
+                            </div>
+                        </div>
+                        <div class="row control-group">
+                            <div class="form-group col-xs-12 floating-label-form-group controls">
+                                <label>遊戲暱稱</label>
+                                <input type="text" class="form-control" placeholder="遊戲暱稱" id="pli_videoUNickName" name="pli_videoUNickName" required data-validation-required-message="請輸入您的遊戲暱稱.">
+                                <p class="help-block text-danger"></p>
+                            </div>
+                        </div>
+                        <div class="row control-group">
+                            <div class="form-group col-xs-12 floating-label-form-group controls">
+                                <label>手機號碼</label>
+                                <input type="text" class="form-control" placeholder="手機號碼" id="pli_videoPhoneNumber" name="pli_videoPhoneNumber" required data-validation-required-message="請輸入您的手機號碼.">
+                                <p class="help-block text-danger"></p>
+                            </div>
+                        </div>
+                        <div class="row control-group">
+                            <div class="form-group col-xs-12 floating-label-form-group controls">
+                                <label>Email</label>
+                                <input type="email" class="form-control" placeholder="Email" id="pli_videoEmail" name="pli_videoEmail" required data-validation-required-message="請輸入您的Email.">
+                                <p class="help-block text-danger"></p>
+                            </div>
+                        </div>
+                        <div class="row control-group">
+                            <div class="form-group col-xs-12 floating-label-form-group controls">
+                                <label>作品名稱</label>
+                                <input type="text" class="form-control" placeholder="作品名稱" id="pli_videoFileCustomName" name="pli_videoFileCustomName" required data-validation-required-message="請輸入您的作品名稱.">
+                                <p class="help-block text-danger"></p>
+                            </div>
+                        </div>
+                        <div class="row control-group">
+                            <div class="form-group col-xs-12 floating-label-form-group controls">
+                                <label>作品簡要說明</label>
+                                <input type="text" class="form-control" placeholder="作品簡要說明" id="pli_videoFileContent" name="pli_videoFileContent" required data-validation-required-message="請輸入您的作品簡要說明.">
+                                <p class="help-block text-danger"></p>
+                            </div>
+                        </div>
+                        <div class="row control-group">
+                            <div class="form-group col-xs-12 floating-label-form-group controls">
+                                <label>選取作品</label>
+                                <input type="file" title="選取作品" class="btn btn-info" id="pli_videoFileOriName" required data-validation-required-message="請選取您的作品." />
+                                <a class="btn btn-link" id="btnFile">上傳檔案</a>
+                                <div id="up_progress"></div>
+                                <p class="help-block text-danger"></p>
+                            </div>
+                        </div>
+                        <div class="row control-group">
+                            <div class="form-group col-xs-12 floating-label-form-group controls" style="display: inline">
+                                <label style="opacity: 10" for="agreebbrule">
+                                    <input type="checkbox" id="agreebbrule" value="5479fd1a" name="agreebbrule" class="pc">同意參賽規則
+                                </label>
+                                <p class="help-block text-danger"></p>
+                            </div>
+                        </div>
+                        <br>
+                        <div id="success"></div>
+                        <div class="row">
+                            <div class="form-group col-xs-12">
+                                <button type="submit" class="btn btn-success btn-lg" href="#">確定報名</button>
+                                <button class="btn btn-warning btn-lg" data-dismiss="modal">取消報名</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="portfolio-modal modal fade" id="divNoticeModal" tabindex="-1" role="dialog" aria-hidden="false">
+        <div class="modal-content">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-8 col-lg-offset-2">
+                        <div class="modal-body">
+                            <h2>參賽注意事項與活動注意事項</h2>
+                            <hr class="star-primary">
+                            <div class="col-lg-8 col-lg-offset-2 text-center">
+                                <h4>參賽注意事項</h4>
+                                <p>我是參賽注意事項。</p>
+                                <h4>活動注意事項</h4>
+                                <p>我是活動注意事項。</p>
+                            </div>
+                            <div class="col-lg-8 col-lg-offset-2 text-center">
+                                <button class="btn btn-success btn-lg" data-dismiss="modal">同意</button>
+                                <button class="btn btn-warning btn-lg" data-dismiss="modal" id="btnNotAgree">不同意</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/freelancer.css" rel="stylesheet" />
+<!-- Custom Fonts -->
+<link href="~/Content/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+<link href="http://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+<!-- jQuery -->
+<script src="~/Scripts/jquery-2.2.3.min.js"></script>
+<!-- Bootstrap Core JavaScript -->
+<script src="~/Scripts/bootstrap.min.js"></script>
+<!-- Plugin JavaScript -->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.3/jquery.easing.min.js"></script>
+<!-- Contact Form JavaScript -->
+<script src="~/Scripts/jqBootstrapValidation.js"></script>
+<!-- Custom Theme JavaScript -->
+<script src="~/Scripts/bootstrap.file-input.js"></script>
+<script src="~/Scripts/example.js"></script>
+<script src="~/Scripts/Pili.js"></script>

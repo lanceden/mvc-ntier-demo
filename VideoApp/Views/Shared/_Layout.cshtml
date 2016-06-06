@@ -1,0 +1,116 @@
+﻿<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>影片審核後臺管理系統</title>
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link href="~/Content/Admin/jquery-jvectormap-1.2.2.css" rel="stylesheet" />
+    <link href="~/Content/Admin/AdminLTE.min.css" rel="stylesheet" />
+    <link href="~/Content/Admin/_all-skins.min.css" rel="stylesheet" />
+    @RenderSection("style", required: false)
+</head>
+
+<body class="hold-transition skin-blue  sidebar-mini">
+    <div class="wrapper">
+        <header class="main-header">
+            <!-- Logo -->
+            <a href="#" class="logo">
+                <!-- 小logo -->
+                <span class="logo-mini"><b style="color: yellow">WG</b></span>
+                <!-- 大logo -->
+                <span class="logo">影片審核後臺</span>
+            </a>
+            <nav class="navbar navbar-static-top" role="navigation">
+                <!-- Sidebar toggle button-->
+                <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
+                    <span class="sr-only">Toggle navigation</span>
+                </a>
+                <!-- 登出 -->
+                <div class="navbar-custom-menu">
+                    <ul class="nav navbar-nav">
+                        <li>
+                            <a href="@Url.Action("Logout","Admin")"><i class="fa ">登出</i></a>
+                        </li>
+                    </ul>
+                </div>
+
+            </nav>
+        </header>
+        <!-- 左列表 -->
+        <aside class="main-sidebar">
+            <!-- sidebar: style can be found in sidebar.less -->
+            <section class="sidebar">
+                <!-- Sidebar user panel -->
+                <!-- sidebar menu: : style can be found in sidebar.less -->
+                <ul class="sidebar-menu">
+                    <li class="header">功能列表</li>
+                    <!-- News active -->
+                    @*<li>
+                        <a href="#">
+                            <i class="fa fa-circle"></i> <span>帳號維護</span> <i class="fa fa-angle-left pull-right"></i>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li class="active"><a href="@Url.Action("ChangePassword","Admin")"><i class="fa fa-circle-o"></i> 修改密碼 </a></li>
+                        </ul>
+                    </li>*@
+                    <!-- Layout Options -->
+                    <li>
+                        <a href="@Url.Action("Index","Admin")">
+                            <i class="fa fa-th"></i> <span> 影片審核 </span> <small class="label pull-right bg-red">hot</small>
+                        </a>
+                    </li>
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="fa fa-share"></i> <span>快速連結</span>
+                            <i class="fa fa-angle-left  pull-right"></i>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="http://www.wegames.biz/" target="_blank"><i class="fa fa-circle-o"></i>唯晶數位官網</a></li>
+                            <li><a href="https://www.wegames.com.tw/pli" target="_blank"><i class="fa fa-circle-o"></i>霹靂無敵</a></li>
+                            <li><a href="http://e.wegames.com.tw/pl/20160126/" target="_blank"><i class="fa fa-circle-o"></i>霹靂江湖</a></li>
+                            <li><a href="https://www.wegames.com.tw/GATAO" target="_blank"><i class="fa fa-circle-o"></i>角頭GATAO</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </section>
+            <!-- /.sidebar -->
+        </aside>
+
+        <!-- Content Wrapper. Contains page content -->
+        <div class="content-wrapper">
+            <!-- Content Header (Page header) -->
+            <section class="content-header">
+                @RenderSection("content", true)
+            </section>
+        </div>
+        <!-- /.content-wrapper -->
+        <!-- footer -->
+        <footer class="main-footer">
+            <div class="pull-right hidden-xs">
+                <b></b>
+            </div>
+            <strong>Copyright &copy; <a href="http://www.wegames.biz/">Wegames</a>.</strong> All rights reserved.
+        </footer>
+        <!-- /.footer -->
+    </div>
+    <!-- jQuery 2.1.4 -->
+    <script src="~/Scripts/jquery-2.2.3.min.js"></script>
+    <script src="~/Scripts/jquery-ui.js"></script>
+    <script src="~/Scripts/jquery-ui-ext.js"></script>
+    <script src="~/Scripts/jquery.cycle.all.js"></script>
+    <link href="~/Content/jquery-ui.css" rel="stylesheet" />
+    <script src="~/Scripts/bootstrap.min.js"></script>
+    <!-- AdminLTE App -->
+    <script src="~/Scripts/Admin/app.min.js"></script>
+    <!-- Sparkline -->
+    <script src="~/Scripts/Admin/jquery.sparkline.min.js"></script>
+    <!-- jvectormap -->
+    <script src="~/Scripts/Admin/jquery-jvectormap-1.2.2.min.js"></script>
+    <script src="~/Scripts/Admin/jquery-jvectormap-world-mill-en.js"></script>
+    <!-- SlimScroll 1.3.0 -->
+    <script src="~/Scripts/Admin/jquery.slimscroll.min.js"></script>
+</body>
+@RenderSection("scripts", required: false)

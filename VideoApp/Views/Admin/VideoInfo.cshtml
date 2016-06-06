@@ -1,0 +1,226 @@
+﻿@model VideoApp.Entity.pli_formData
+
+@{
+    ViewBag.Title = "VideoInfo";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>VideoInfo</h2>
+
+@section content {
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-horizontal">
+            <h2 class="text-center">詳細訊息</h2>
+            <hr />
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+            @Html.HiddenFor(model => model.pli_videoUid)
+
+            <table id="grid-data" class="table table-condensed table-hover table-striped">
+                <thead>
+                    <tr>
+                        <th data-column-id="pli_videoUid" data-type="numeric" data-sortable="true">次序</th>
+                        <th data-column-id="pli_videoFileUploadTime" data-formatter="jsonTime" data-sortable="false">上傳時間</th>
+                        <th data-column-id="pli_videoUName" data-sortable="false">作者</th>
+                        <th data-column-id="pli_videoFileCustomName" data-sortable="false">作品名稱</th>
+                        <th data-column-id="pli_videoFileContent" data-formatter="chkCheck" data-sortable="false">作品說明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>@Model.pli_videoUid</td>
+                        <td>@Model.pli_videoFileUploadTime</td>
+                        <td>@Model.pli_videoUName</td>
+                        <td>@Model.pli_videoFileCustomName</td>
+                        <td>@Model.pli_videoFileContent</td>
+                    </tr>
+                </tbody>
+            </table>
+            <table id="grid-data" class="table table-condensed table-striped table-hover table-bordered">
+                <thead>
+                    <tr>
+                        @*<th data-column-id="pli_videoNotPassContent" data-sortable="false">未通過原因</th>*@
+                        <th data-column-id="pli_videoIsCheck" data-sortable="false" data-formatter="emailToHref">審核狀態</th>
+                        <th data-column-id="pli_videoEmail">作者Email</th>
+                        <th data-column-id="pli_videoMailAlert">Email通知</th>
+                        <th data-column-id="pli_videoFileUrl">下載影片</th>
+                        <th data-column-id="pli_videoYoutubelink">Youtube連結</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        @{
+                         var isCheck = Model.pli_videoIsCheck;
+                         var str = string.Empty;
+                         switch (isCheck)
+                         {
+                             case 0:
+                                 str = "未審核";
+                                 break;
+                             case 1:
+                                 str = "審核通過";
+                                 break;
+                             case 2:
+                                 str = "審核未通過";
+                                 break;
+                         }
+                            @Html.Raw("<td>"+str+"</td>");
+                        }
+                        <td>@Model.pli_videoEmail</td>
+                        @{
+                            var strAlert = string.Empty;
+                            switch (Model.pli_videoMailAlert)
+                            {
+                                case true:
+                                    strAlert = "是";
+                                    break;
+                                default:
+                                    strAlert = "否";
+                                    break;
+                            }
+                            @Html.Raw("<td>" + strAlert + "</td>");
+                        }
+                        <td><a href="@Model.pli_videoFileUrl">@Model.pli_videoFileOriName</a></td>
+                        <td><a href="@Model.pli_videoYoutubelink">@Model.pli_videoYoutubelink</a></td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+        <div class="container">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        <p class="text-center">
+                            <strong>影片審核詳細訊息</strong>
+                        </p>
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <table id="tbForm" class="table table-hover table-bordered ">
+                        <tr>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-addon">審核狀態</span>
+                                    <select id="selVideoCheck">
+                                        <option value="0">未審核</option>
+                                        <option value="1">審核通過</option>
+                                        <option value="2">審核未通過</option>
+                                    </select>
+                                    @Html.HiddenFor(model => model.pli_videoIsCheck)
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div id="divNotPassContent" class="input-group">
+                                    <span class="input-group-addon">審核未通過原因</span>
+                                    @Html.EditorFor(model => model.pli_videoNotPassContent, new { htmlAttributes = new { @class = "form-control", placeholder = "審核未通過在填寫,預設留空" } })
+                                    @Html.ValidationMessageFor(model => model.pli_videoNotPassContent, "", new { @class = "text-danger" })
+                                    <span class="input-group-addon glyphicon glyphicon-arrow-down"></span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div id="divNotPassContent" class="input-group">
+                                    <span class="input-group-addon">發送通知信</span>
+                                    <a href="#" class="btn btn-primary" id="btnSendMail">發送通知信</a>
+                                    <label id="lblSendMailMsg"></label>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+
+                                <div id="divNotPassContent" class="input-group table-responsive">
+                                    <span class="input-group-addon">Youtube連結</span>
+                                    @Html.EditorFor(model => model.pli_videoYoutubelink, new { htmlAttributes = new { @class = "form-control", placeholder = "通過審核在填寫,預設留空" } })
+                                    @Html.ValidationMessageFor(model => model.pli_videoYoutubelink, "", new { @class = "text-danger" })
+                                </div>
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="form-group">
+                                    <div class="col-md-offset-2 col-md-10">
+                                    </div>
+                                </div>
+                                <a href="#" class="btn btn-danger" onclick="FomrSubmit()">確定</a>
+                                <a href="@Url.Action("Index","Admin")" class="btn btn-warning">取消</a>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+ }
+}
+
+@section scripts{
+    <script type="text/javascript">
+        $(function () {
+            $("#selVideoCheck").val(@Model.pli_videoIsCheck);
+            if(@Model.pli_videoIsCheck === 2) $("#divNotPassContent").show();
+            else $("#divNotPassContent").hide();
+            $("#selVideoCheck").change(function () {
+                var value = $(this).val();
+                switch (value) {
+                    case "0":
+                        $("#pli_videoNotPassContent").val("");
+                        $("#pli_videoIsCheck").val(0);
+                        break;
+                    case "1":
+                        $("#pli_videoNotPassContent").val("");
+                        $("#divNotPassContent").hide();
+                        $("#pli_videoIsCheck").val(1);
+                        break;
+                    case "2":
+                        $("#divNotPassContent").show();
+                        $("#pli_videoIsCheck").val(2);
+                        break;
+                }
+            });
+            $("#btnSendMail").click(function () {
+                var content = $("#pli_videoNotPassContent").val();
+                var sendType = $("#selVideoCheck").val();
+                if (sendType == "2" && content == "") {
+                    if (!confirm("審核未通過內容為空,是否確定要發送信件?")) return;
+                }
+                var uid = $("#pli_videoUid").val();
+                $.post("/PliEvent/Admin/SendMail", { content: content, sendType: sendType, uid:uid }, function (jsonObj) {
+                    switch (jsonObj.statu) {
+                        case "ok":
+                            $("#lblSendMailMsg").html(jsonObj.msg);
+                            break;
+                        case "err":
+                            $("#lblSendMailMsg").html(jsonObj.msg);
+                            break;
+
+                    }
+                }, "json");
+            });
+        });
+
+        function FomrSubmit() {
+            var pli_videoUid = $("#pli_videoUid").val();
+            var pli_videoIsCheck = $("#pli_videoIsCheck").val();
+            var pli_videoNotPassContent = $("#pli_videoNotPassContent").val();
+            var pli_videoYoutubelink = $("#pli_videoYoutubelink").val();
+            $.post("/PliEvent/Admin/VideoInfo", { pli_videoUid: pli_videoUid, pli_videoIsCheck: pli_videoIsCheck, pli_videoNotPassContent: pli_videoNotPassContent, pli_videoYoutubelink: pli_videoYoutubelink }, function (jsonObj) {
+                switch (jsonObj.statu) {
+                    case "ok":
+                        window.location.href = "/PliEvent/Admin/index";
+                        break;
+                    case "err":
+                        alert(jsonObj.msg);
+                        return;
+                        break;
+                }
+            }, "json");
+        }
+    </script>
+}

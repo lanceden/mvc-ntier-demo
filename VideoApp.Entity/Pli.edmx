@@ -1,0 +1,235 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="PliModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="pli_formData">
+          <Key>
+            <PropertyRef Name="pli_videoUid" />
+          </Key>
+          <Property Name="pli_videoUid" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="pli_videoUGameServerId" Type="int" Nullable="false" />
+          <Property Name="pli_videoGameId" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="pli_videoUName" Type="nvarchar" MaxLength="10" Nullable="false" />
+          <Property Name="pli_videoUNickName" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="pli_videoPhoneNumber" Type="nvarchar" MaxLength="10" Nullable="false" />
+          <Property Name="pli_videoEmail" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="pli_videoFileCustomName" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="pli_videoFileContent" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="pli_videoFileOriName" Type="nvarchar" MaxLength="50" />
+          <Property Name="pli_videoFileNewName" Type="nvarchar" MaxLength="150" Nullable="false" />
+          <Property Name="pli_videoFileSize" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="pli_videoFileUploadTime" Type="datetime" Nullable="false" />
+          <Property Name="pli_videoFileUrl" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="pli_videoIsCheck" Type="int" Nullable="false" />
+          <Property Name="pli_videoNotPassContent" Type="nvarchar" MaxLength="500" />
+          <Property Name="pli_videoMailAlert" Type="bit" Nullable="false" />
+          <Property Name="pli_videoYoutubelink" Type="nvarchar" MaxLength="100" />
+        </EntityType>
+        <EntityType Name="pli_loginAccount">
+          <Key>
+            <PropertyRef Name="pli_Lid" />
+          </Key>
+          <Property Name="pli_Lid" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="pli_LonginAccount" Type="char" MaxLength="20" Nullable="false" />
+          <Property Name="pli_LonginPassword" Type="binary" MaxLength="50" Nullable="false" />
+          <Property Name="pli_LoginTime" Type="datetime" />
+          <Property Name="pli_LoginType" Type="int" />
+          <Property Name="pli_LoginCName" Type="varchar" MaxLength="20" />
+        </EntityType>
+        <EntityType Name="pli_mailLog">
+          <Key>
+            <PropertyRef Name="pil_mailLogId" />
+          </Key>
+          <Property Name="pil_mailLogId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="pl_mailLogSendType" Type="bit" Nullable="false" />
+          <Property Name="pil_mailLogReceiveName" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="pil_mailLogReceiveMail" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="pil_mailLogSendContent" Type="nvarchar" MaxLength="1000" Nullable="false" />
+          <Property Name="pli_mailLogFileName" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="pli_mailLogSendStatu" Type="nvarchar" MaxLength="20" Nullable="false" />
+          <Property Name="pli_mailLogCreateTime" Type="datetime" Nullable="false" />
+        </EntityType>
+        <EntityType Name="pli_menuList">
+          <Key>
+            <PropertyRef Name="pli_mid" />
+          </Key>
+          <Property Name="pli_mid" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="pli_MFather" Type="nvarchar" MaxLength="10" Nullable="false" />
+          <Property Name="pli_MSon" Type="nvarchar" MaxLength="20" />
+          <Property Name="pli_MGroup" Type="int" Nullable="false" />
+          <Property Name="pli_MSort" Type="int" Nullable="false" />
+          <Property Name="pli_MLoginType" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="pli_MUrl" Type="nvarchar" MaxLength="100" Nullable="false" />
+        </EntityType>
+        <EntityContainer Name="PliModelStoreContainer">
+          <EntitySet Name="pli_formData" EntityType="Self.pli_formData" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="pli_loginAccount" EntityType="Self.pli_loginAccount" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="pli_mailLog" EntityType="Self.pli_mailLog" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="pli_menuList" EntityType="Self.pli_menuList" Schema="dbo" store:Type="Tables" />
+        </EntityContainer>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="PliModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="pli_formData">
+          <Key>
+            <PropertyRef Name="pli_videoUid" />
+          </Key>
+          <Property Name="pli_videoUid" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="pli_videoUGameServerId" Type="Int32" Nullable="false" />
+          <Property Name="pli_videoGameId" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="pli_videoUName" Type="String" MaxLength="10" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="pli_videoUNickName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="pli_videoPhoneNumber" Type="String" MaxLength="10" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="pli_videoEmail" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="pli_videoFileCustomName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="pli_videoFileContent" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="pli_videoFileOriName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="pli_videoFileNewName" Type="String" MaxLength="150" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="pli_videoFileSize" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="pli_videoFileUploadTime" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="pli_videoFileUrl" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="pli_videoIsCheck" Type="Int32" Nullable="false" />
+          <Property Name="pli_videoNotPassContent" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="pli_videoMailAlert" Type="Boolean" Nullable="false" />
+          <Property Name="pli_videoYoutubelink" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="pli_loginAccount">
+          <Key>
+            <PropertyRef Name="pli_Lid" />
+          </Key>
+          <Property Name="pli_Lid" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="pli_LonginAccount" Type="String" MaxLength="20" FixedLength="true" Unicode="false" Nullable="false" />
+          <Property Name="pli_LonginPassword" Type="Binary" MaxLength="50" FixedLength="true" Nullable="false" />
+          <Property Name="pli_LoginTime" Type="DateTime" Precision="3" />
+          <Property Name="pli_LoginType" Type="Int32" />
+          <Property Name="pli_LoginCName" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="pli_mailLog">
+          <Key>
+            <PropertyRef Name="pil_mailLogId" />
+          </Key>
+          <Property Name="pil_mailLogId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="pl_mailLogSendType" Type="Boolean" Nullable="false" />
+          <Property Name="pil_mailLogReceiveName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="pil_mailLogReceiveMail" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="pil_mailLogSendContent" Type="String" MaxLength="1000" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="pli_mailLogFileName" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="pli_mailLogSendStatu" Type="String" MaxLength="20" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="pli_mailLogCreateTime" Type="DateTime" Nullable="false" Precision="3" />
+        </EntityType>
+        <EntityType Name="pli_menuList">
+          <Key>
+            <PropertyRef Name="pli_mid" />
+          </Key>
+          <Property Name="pli_mid" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="pli_MFather" Type="String" MaxLength="10" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="pli_MSon" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="pli_MGroup" Type="Int32" Nullable="false" />
+          <Property Name="pli_MSort" Type="Int32" Nullable="false" />
+          <Property Name="pli_MLoginType" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="pli_MUrl" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+        </EntityType>
+        <EntityContainer Name="PliEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="pli_formData" EntityType="Self.pli_formData" />
+          <EntitySet Name="pli_loginAccount" EntityType="Self.pli_loginAccount" />
+          <EntitySet Name="pli_mailLog" EntityType="Self.pli_mailLog" />
+          <EntitySet Name="pli_menuList" EntityType="Self.pli_menuList" />
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="PliModelStoreContainer" CdmEntityContainer="PliEntities">
+          <EntitySetMapping Name="pli_formData">
+            <EntityTypeMapping TypeName="PliModel.pli_formData">
+              <MappingFragment StoreEntitySet="pli_formData">
+                <ScalarProperty Name="pli_videoUid" ColumnName="pli_videoUid" />
+                <ScalarProperty Name="pli_videoUGameServerId" ColumnName="pli_videoUGameServerId" />
+                <ScalarProperty Name="pli_videoGameId" ColumnName="pli_videoGameId" />
+                <ScalarProperty Name="pli_videoUName" ColumnName="pli_videoUName" />
+                <ScalarProperty Name="pli_videoUNickName" ColumnName="pli_videoUNickName" />
+                <ScalarProperty Name="pli_videoPhoneNumber" ColumnName="pli_videoPhoneNumber" />
+                <ScalarProperty Name="pli_videoEmail" ColumnName="pli_videoEmail" />
+                <ScalarProperty Name="pli_videoFileCustomName" ColumnName="pli_videoFileCustomName" />
+                <ScalarProperty Name="pli_videoFileContent" ColumnName="pli_videoFileContent" />
+                <ScalarProperty Name="pli_videoFileOriName" ColumnName="pli_videoFileOriName" />
+                <ScalarProperty Name="pli_videoFileNewName" ColumnName="pli_videoFileNewName" />
+                <ScalarProperty Name="pli_videoFileSize" ColumnName="pli_videoFileSize" />
+                <ScalarProperty Name="pli_videoFileUploadTime" ColumnName="pli_videoFileUploadTime" />
+                <ScalarProperty Name="pli_videoFileUrl" ColumnName="pli_videoFileUrl" />
+                <ScalarProperty Name="pli_videoIsCheck" ColumnName="pli_videoIsCheck" />
+                <ScalarProperty Name="pli_videoNotPassContent" ColumnName="pli_videoNotPassContent" />
+                <ScalarProperty Name="pli_videoMailAlert" ColumnName="pli_videoMailAlert" />
+                <ScalarProperty Name="pli_videoYoutubelink" ColumnName="pli_videoYoutubelink" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="pli_loginAccount">
+            <EntityTypeMapping TypeName="PliModel.pli_loginAccount">
+              <MappingFragment StoreEntitySet="pli_loginAccount">
+                <ScalarProperty Name="pli_Lid" ColumnName="pli_Lid" />
+                <ScalarProperty Name="pli_LonginAccount" ColumnName="pli_LonginAccount" />
+                <ScalarProperty Name="pli_LonginPassword" ColumnName="pli_LonginPassword" />
+                <ScalarProperty Name="pli_LoginTime" ColumnName="pli_LoginTime" />
+                <ScalarProperty Name="pli_LoginType" ColumnName="pli_LoginType" />
+                <ScalarProperty Name="pli_LoginCName" ColumnName="pli_LoginCName" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="pli_mailLog">
+            <EntityTypeMapping TypeName="PliModel.pli_mailLog">
+              <MappingFragment StoreEntitySet="pli_mailLog">
+                <ScalarProperty Name="pil_mailLogId" ColumnName="pil_mailLogId" />
+                <ScalarProperty Name="pl_mailLogSendType" ColumnName="pl_mailLogSendType" />
+                <ScalarProperty Name="pil_mailLogReceiveName" ColumnName="pil_mailLogReceiveName" />
+                <ScalarProperty Name="pil_mailLogReceiveMail" ColumnName="pil_mailLogReceiveMail" />
+                <ScalarProperty Name="pil_mailLogSendContent" ColumnName="pil_mailLogSendContent" />
+                <ScalarProperty Name="pli_mailLogFileName" ColumnName="pli_mailLogFileName" />
+                <ScalarProperty Name="pli_mailLogSendStatu" ColumnName="pli_mailLogSendStatu" />
+                <ScalarProperty Name="pli_mailLogCreateTime" ColumnName="pli_mailLogCreateTime" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="pli_menuList">
+            <EntityTypeMapping TypeName="PliModel.pli_menuList">
+              <MappingFragment StoreEntitySet="pli_menuList">
+                <ScalarProperty Name="pli_mid" ColumnName="pli_mid" />
+                <ScalarProperty Name="pli_MFather" ColumnName="pli_MFather" />
+                <ScalarProperty Name="pli_MSon" ColumnName="pli_MSon" />
+                <ScalarProperty Name="pli_MGroup" ColumnName="pli_MGroup" />
+                <ScalarProperty Name="pli_MSort" ColumnName="pli_MSort" />
+                <ScalarProperty Name="pli_MLoginType" ColumnName="pli_MLoginType" />
+                <ScalarProperty Name="pli_MUrl" ColumnName="pli_MUrl" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="false" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="無" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

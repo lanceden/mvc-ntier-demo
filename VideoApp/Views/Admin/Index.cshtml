@@ -1,0 +1,141 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section content {
+<link href="~/Content/jquery.bootgrid.min.css" rel="stylesheet" />
+    <style type="text/css">
+        .columnId
+    {
+        width: 60px;
+    }
+        .columnMail
+    {
+        width: 80px;
+    }
+    </style>
+
+<h2>影片審核</h2>
+    <h6>註1:搜尋僅能由次序與審核狀態(通過,未通過,未審核)</h6>
+<table id="grid-data" class="table table-condensed table-hover table-striped">
+    <thead>
+        <tr>
+            <th data-column-id="pli_edit" data-header-css-class="columnId" data-formatter="editButton"></th>
+            <th data-column-id="pli_videoUid" data-header-css-class="columnId" data-type="numeric" data-sortable="true">次序</th>
+            @*<th data-column-id="pli_videoFileUploadTime" data-formatter="jsonTime" data-sortable="false">上傳時間</th>*@
+            <th data-column-id="pli_videoUName" data-sortable="false">作者</th>
+            <th data-column-id="pli_videoFileCustomName" data-sortable="false">作品名稱</th>
+            <th data-column-id="pli_videoFileContent" data-sortable="false">作品說明</th>
+            <th data-column-id="pli_videoIsCheck" data-header-css-class="columnMail" data-formatter="chkCheck" data-sortable="false">審核狀態</th>
+            @*<th data-column-id="pli_videoNotPassContent" data-sortable="false">未通過原因</th>*@
+            <th data-column-id="pli_videoEmail"  data-header-css-class="columnMail" data-sortable="false" data-formatter="emailToHref">Email</th>
+            <th data-column-id="pli_videoMailAlert" data-header-css-class="columnId" data-formatter="chkMailAlert" data-sortable="false">已發送郵件通知</th>
+            <th data-column-id="pli_videoFileUrl" data-sortable="false" data-formatter="videoPreview">預覽影片</th>
+            <th data-column-id="pli_videoYoutubelink" data-formatter="aLinkButton"  data-sortable="false">Youtube連結</th>
+        </tr>
+    </thead>
+</table>
+
+
+<div class="container">
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">影片預覽</h4>
+                </div>
+                <div id="divModalbody" class="modal-body">
+                    <video id='videoPlayer' width="640" height="480" controls="controls">
+                        <source id='mp4Source' src="" type="video/mp4" />
+                    </video>
+
+                    <a class="btn btn-info" id="aVideoDownLoad">下載</a>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+}
+
+@section scripts{
+    <script src="~/Scripts/jquery.bootgrid.min.js"></script>
+    <script src="~/Scripts/jquery.bootgrid.fa.js"></script>
+    <script type="text/javascript">
+        $(function() {
+            $("#grid-data").bootgrid({
+                css: {
+                    pagination: 'pagination pagination-sm btn-sm'
+                },
+                ajax: true,
+                //post: function() {
+                //    /* To accumulate custom parameter with the request object */
+                //    return {
+                //        id: "b0df282a-0d67-40e5-8558-c9e93b7befed"
+                //    };
+                //},
+                url: "/PliEvent/Admin/VideoValid",
+                formatters: {
+                    "jsonTime": function(column, row) {
+                        if (row.pli_videoFileUploadTime == null) return "";
+                        var date = new Date(parseInt(row.pli_videoFileUploadTime.replace("/Date(", "").replace(")/", ""), 10));
+                        var month = date.getMonth() + 1 < 10 ? "0" + (date.getMonth() + 1) : date.getMonth() + 1;
+                        var currentDate = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+                        return date.getFullYear() + "/" + month + "/" + currentDate;
+                    },
+                    "chkCheck": function(column, row) {
+                        switch (row.pli_videoIsCheck) {
+                        case 0: //未審核
+                            return "未審核";
+                        case 1: //審核通過
+                            return "通過";
+                        case 2: //審核未通過
+                            return "未通過";
+                        }
+                    },
+                    "editButton": function(column, row) {
+                        return "<button class='btn btn-sm btn-danger' id='btnEdit' onclick='piliClass.GetEditData(" + row.pli_videoUid + ")'>修改</button>"; //
+                    },
+                    "videoPreview": function(column, row) {
+                        return "<button class='btn btn-success' type='button' data-toggle='modal' data-video='" + row.pli_videoFileUrl + "' id='btnVideo" + row.pli_videoUid + "' onclick='piliClass.VideoPreview(" + row.pli_videoUid + ")'>" + row.pli_videoFileOriName + "</button>"; //
+                    },
+                    "emailToHref": function (column, row) {
+                        return "<a href='mailto:" + row.pli_videoEmail + "?Subject=霹靂無敵影片活動' >Send</a>"
+                    },
+                    "chkMailAlert": function (column, row) {
+                        switch (row.pli_videoMailAlert.toString()) {
+                            case "false":
+                                return "否";
+                            case "true":
+                                return "是";
+                        }
+                    },
+                    "aLinkButton": function (column, row) {
+                        if (row.pli_videoYoutubelink == null) return "";
+                        return "<a href='" + row.pli_videoYoutubelink + "' >Go</a>"
+                    }
+                }
+            });
+        });
+        var piliClass = {
+            GetEditData: function(uid) {
+                window.location.href = "/PliEvent/Admin/VideoInfo/" + uid;
+            },
+            VideoPreview: function (uid) {
+                var player = document.getElementById('videoPlayer');
+                var mp4Vid = document.getElementById('mp4Source');
+                player.pause();
+                var btn = "#btnVideo" + uid;
+                var src = "/PliEvent"+ $(btn).data("video");
+                $(mp4Vid).attr('src', src);
+                player.load();
+                player.play();
+                $("#aVideoDownLoad").prop("href", src);
+                $("#myModal").modal();
+            }
+        }
+    </script>
+}
