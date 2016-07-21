@@ -1,0 +1,131 @@
+using System.Configuration;
+using System.Data;
+using System.Data.Common;
+using System.Data.SqlClient;
+
+namespace wegames.fee.Repository
+{
+    /// <summary>
+    /// 連接SQL類
+    /// </summary>
+    public class SqlHelper
+    {
+        #region 要創建的工廠名稱 - providerName
+        /// <summary>
+        /// 要創建的工廠名稱
+        /// </summary>
+        private static readonly string ProviderName = ConfigurationManager.AppSettings["providerName"]; 
+        #endregion
+        #region 要連接的SQL連接字符串 -80426605_WF
+        /// <summary>
+        /// 要連接的SQL連接字符串 -80426605_WF
+        /// </summary>
+        private static readonly string ConnStr = ConfigurationManager.AppSettings["connStr"];
+        private static readonly string ConnStr3 = ConfigurationManager.AppSettings["connStr3"];
+        private static readonly string ConnStr4 = ConfigurationManager.AppSettings["connStr4"];
+        private static readonly string ConnStr5 = ConfigurationManager.AppSettings["connStr5"];
+        #endregion
+        #region 連接方法 - DbConnection CreatedbConn
+        /// <summary>
+        /// 連接方法
+        /// </summary>
+        /// <param name="conn">要連接到那個數據庫</param>
+        /// <returns></returns>
+        private static DbConnection CreatedbConn(int conn)
+        {
+            var dbFactory = DbProviderFactories.GetFactory(SqlHelper.ProviderName);
+            var dbConn = dbFactory.CreateConnection();
+            switch (conn)
+            {
+                case 1:
+                    dbConn.ConnectionString = SqlHelper.ConnStr;
+                    break;
+                case 3:
+                    dbConn.ConnectionString = SqlHelper.ConnStr3;
+                    break;
+                case 4:
+                    dbConn.ConnectionString = SqlHelper.ConnStr4;
+                    break;
+                case 5:
+                    dbConn.ConnectionString = SqlHelper.ConnStr5;
+                    break;
+            }
+            return dbConn;
+        } 
+        #endregion
+        #region 增刪改返回受影響行數 +int ExecuteNonQuery
+        /// <summary>
+        /// 增刪改返回受影響行數
+        /// </summary>
+        /// <param name="sql">Sql語法</param>
+        /// <param name="conn">連接的數據庫</param>
+        /// <param name="parameters">可變SQL參數</param>
+        /// <returns></returns>
+        public static int ExecuteNonQuery(string sql, int conn, params SqlParameter[] parameters)
+        {
+            using (var dbConn = CreatedbConn(1))
+            {
+                dbConn.Open();
+                using (var cmd = dbConn.CreateCommand())
+                {
+                    cmd.CommandText = sql;
+                    cmd.Parameters.AddRange(parameters);
+                    cmd.CommandType = System.Data.CommandType.Text;
+                    return cmd.ExecuteNonQuery();
+                }
+            }
+        } 
+        #endregion
+        #region 返回一行一列的數據 + object ExecuteScalar
+        /// <summary>
+        /// 返回一行一列的數據
+        /// </summary>
+        /// <param name="sql">Sql語法</param>
+        /// <param name="conn">連接的數據庫</param>
+        /// <param name="parameters">可變SQL參數</param>
+        /// <returns></returns>
+        public static object ExecuteScalar(string sql, int conn, params SqlParameter[] parameters)
+        {
+            using (var dbConn = CreatedbConn(1))
+            {
+                dbConn.Open();
+                using (var cmd = dbConn.CreateCommand())
+                {
+                    cmd.CommandText = sql;
+                    cmd.Parameters.AddRange(parameters);
+                    cmd.CommandType = System.Data.CommandType.Text;
+                    return cmd.ExecuteScalar();
+                }
+            }
+        } 
+        #endregion
+        #region 返回整個資料結果集 + DataTable ExecuteDataTable
+        /// <summary>
+        /// 返回整個資料結果集 + DataTable ExecuteDataTable
+        /// </summary>
+        /// <param name="sql">Sql語法</param>
+        /// <param name="conn">連接的數據庫</param>
+        /// <param name="parameters">可變SQL參數</param>
+        /// <returns></returns>
+        public static DataTable ExecuteDataTable(string sql, int conn, params SqlParameter[] parameters)
+        {
+            using (var dbConn = CreatedbConn(conn))
+            {
+                dbConn.Open();
+                using (var cmd = dbConn.CreateCommand())
+                {
+                    cmd.CommandText = sql;
+                    cmd.Parameters.AddRange(parameters);
+                    cmd.CommandType = System.Data.CommandType.Text;
+                    var dbFactory = DbProviderFactories.GetFactory(SqlHelper.ProviderName);
+                    var adapter = dbFactory.CreateDataAdapter();
+                    adapter.SelectCommand = cmd;
+                    var ds = new DataSet();
+                    adapter.Fill(ds);
+                    return ds.Tables[0];
+                }
+            }
+        } 
+        #endregion
+    }
+}
