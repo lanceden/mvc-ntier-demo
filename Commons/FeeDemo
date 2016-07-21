@@ -1,0 +1,1245 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using wegames.fee.Common;
+using wegames.fee.Entity;
+
+namespace wegames.fee.Repository
+{
+    /// <summary>
+    /// 費用申請單 DAL層
+    /// </summary>
+    public class FeeDal
+    {
+        //費用申請單-------------------------------------------------
+        #region 0.0 從sql產生流水編號
+        /// <summary>
+        /// 0.0 從sql產生流水編號
+        /// </summary>
+        /// <returns></returns>
+        public string GetFormIdByProc()
+        {
+            object obj = SqlHelper.ExecuteScalar("exec usp_GetFormIdByProc", 1);
+            return obj.ToString();
+        }
+        #endregion
+        #region 1.0 預算科目 下拉選單value及text + GetListGridData(int selId)
+        /// <summary>
+        /// 1.0 預算科目 下拉選單value及text + GetListGridData(int selId)
+        /// </summary>
+        /// <returns>預算科目集合</returns>
+        public List<GridData> GetListGridData(int selId)
+        {
+            List<GridData> listGrid = null;
+            DataTable table = SqlHelper.ExecuteDataTable("exec usp_GetDropDownListDataByGroupId @Id", 1, new SqlParameter("@id", SqlDbType.Int) { Value = selId });
+            if (table != null && table.Rows.Count > 0)
+            {
+                listGrid = new List<GridData>(table.Rows.Count);
+                for (int i = 0; i < table.Rows.Count; i++)
+                {
+                    DataRow rows = table.Rows[i];
+                    listGrid.Add(Row2Sel(rows));
+                }
+            }
+            return listGrid;
+        }
+        #endregion
+        #region 1.1 幣別 下拉選單的 value 及 text + GetListBibieData()
+        /// 1.1 取得下拉選單的 value 及 text
+        /// </summary>
+        /// <returns>List<GridData>集合</GridData></returns>
+        public List<Bibie> GetListBibieData()
+        {
+            List<Bibie> listBibieDat = null;
+            DataTable table = SqlHelper.ExecuteDataTable(@"SELECT [bText],[bValue]
+                                                    FROM [Fee].[dbo].[GridDataBibie]", 1);
+            if (table != null && table.Rows.Count > 0)
+            {
+                listBibieDat = new List<Bibie>(table.Rows.Count);
+                for (int i = 0; i < table.Rows.Count; i++)
+                {
+                    Bibie bibie = new Bibie();
+                    DataRow rows = table.Rows[i];
+                    bibie.BText = rows[0].ToString();
+                    bibie.BValue = rows[1].ToString();
+                    listBibieDat.Add(bibie);
+                }
+            }
+            return listBibieDat;
+        }
+        #endregion
+        #region 2.0 預算類型 獲取選取Value的文字
+        /// <summary>
+        /// 2.0 預算類型 獲取選取Value的文字
+        /// </summary>
+        /// <param name="selKemu">預算科目Value</param>
+        /// <param name="selSubject">預算類型Value</param>
+        /// <returns>預算類型文字</returns>
+        public object GetSubjectData(int selKemu, int selSubject)
+        {   //--selKemu=2  --selSubject=10003
+            object obj = SqlHelper.ExecuteScalar(@"Select gd.selText from GridDataFee as gd
+                         where gd.selValue=@selKemu and gd.selGroup = @selSubject", 1,
+                        new SqlParameter("@selKemu", SqlDbType.Int) { Value = selKemu },
+                        new SqlParameter("@selSubject", SqlDbType.Int) { Value = selSubject });
+            return obj;
+        }
+        #endregion
+        #region 3.0 幣別 獲取選取Value的文字
+        /// <summary>
+        /// 3.0 幣別 獲取選取Value的文字
+        /// </summary>
+        /// <param name="id">幣別選中Value</param>
+        /// <returns>幣別選中文字</returns>
+        public string GetBibieDataById(string id)
+        {
+            object bText = SqlHelper.ExecuteScalar(@"SELECT [bText] FROM [Fee].[dbo].[GridDataBibie] as bi
+                             where bi.bValue = @bValue", 1, new SqlParameter("@bValue", SqlDbType.NVarChar) { Value = id });
+            return bText.ToString();
+        }
+        #endregion
+        #region 3.1 幣別 由文字獲取下拉框選中的值
+        /// <summary>
+        /// 3.1 幣別 由文字獲取下拉框選中的值
+        /// </summary>
+        /// <param name="bibieName">選中的幣別文字</param>
+        /// <returns>選中的幣別的值</returns>
+        public string GetBibieDataByName(string bibieName)
+        {
+            object bText = SqlHelper.ExecuteScalar(@"SELECT bi.bValue FROM [Fee].[dbo].[GridDataBibie] as bi
+                 where bi.bText = @bValue", 1, new SqlParameter("@bValue", SqlDbType.NVarChar) { Value = bibieName });
+            return bText.ToString();
+
+        }
+        #endregion
+        #region 4.0 專案項目 下拉框
+        /// <summary>
+        /// 4.0 專案項目 下拉框
+        /// </summary>
+        /// <returns>專案項目 text 及 value</returns>
+        public List<Project> GetDropDownProjectByProc()
+        {
+            DataTable table = SqlHelper.ExecuteDataTable("exec usp_GetDropDownListGridDataProject 0", 1);
+            List<Project> list = null;
+            if (table != null && table.Rows.Count > 0)
+            {
+                Project pro = null;
+                list = new List<Project>(table.Rows.Count);
+                for (int i = 0; i < table.Rows.Count; i++)
+                {
+                    pro = new Project();
+                    DataRow rows = table.Rows[i];
+                    pro.selValue = rows["selValue"].ToString();
+                    pro.selText = rows["selText"].ToString();
+                    list.Add(pro);
+                }
+            }
+            return list;
+        }
+        #endregion
+        #region 4.1 專案項目 選中值的文字
+        /// <summary>
+        /// 4.1 專案項目 選中值的文字
+        /// </summary>
+        /// <param name="selValue">專案項目選中值</param>
+        /// <returns>專案項目選中值的文字</returns>
+        public string GetProjectValueBuProjectName(string selValue)
+        {
+            object obj = SqlHelper.ExecuteScalar(@"SELECT selText 
+                  FROM [Fee].[dbo].[GridDataProject] where selValue = @selValue", 1, 
+                    new SqlParameter("@selValue", SqlDbType.NVarChar) { Value = selValue });
+            return obj.ToString();
+        }
+        #endregion
+        #region 5.0 查詢費用申請單 +List<Fee> GetFeeData()
+        /// <summary>
+        /// 5.0 查詢費用申請單(By formId or id)
+        /// </summary>
+        /// <param name="id">行id 或是 表單id</param>
+        /// <param name="where">id or formId</param>
+        /// <returns>找到的Fee對象</returns>
+        public List<Fee> GetFeeData(string id, string where)
+        {
+            var table = SqlHelper.ExecuteDataTable(@"SELECT 
+                                    fee.ID,fee.EmpNum,fee.Company,fee.Date,fee.Subject,fee.Count,fee.Remark,
+                                    fee.CreateUser,fee.UpdataUser,
+                                    fee.Isdel,fee.Bibie,fee.Leixing,gd.selText,gd.selValue,gd.selGroup,
+                                    fee.formId,bibie.bValue,fee.portalId,project,fee.ExtFeeForm,fee.ReCallPortalId,fee.ExtPurchasePortalId
+                                    FROM [Fee].[dbo].[WF_WORKSHEET_GRID_Fee] as fee
+                                    inner join [Fee].[dbo].[GridDataFee] as gd
+                                    on gd.selValue = fee.Leixing
+                                    inner join [Fee].[dbo].[GridDataBibie] as bibie
+                                    on Bibie.bText = fee.Bibie
+                                    where Isdel = 0 and fee." + where + "   = @portalId order by fee.Count asc", 1,
+                                   new SqlParameter("@portalId", SqlDbType.NVarChar) { Value = id });
+            if (table == null || table.Rows.Count <= 0) return null;
+            var list = new List<Fee>(table.Rows.Count);
+            for (var i = 0; i < table.Rows.Count; i++)
+            {
+                var rows = table.Rows[i];
+                list.Add(Row2Model(rows));
+            }
+            return list;
+        }
+        #endregion
+        #region 6.0 新增費用申請單 + int AddNewFeeData(Fee feeModel)
+       /// <summary>
+        /// 6.0 新增費用申請單 + int AddNewFeeData(Fee feeModel)
+       /// </summary>
+       /// <param name="feeModel">要新增的費用對象</param>
+        /// <returns>受影響的行數</returns>
+        public int AddNewFeeData(Fee feeModel)
+        {
+            var res = SqlHelper.ExecuteNonQuery(@"INSERT INTO [Fee].[dbo].[WF_WORKSHEET_GRID_Fee]
+                        ([Company],[EmpName],[EmpNum],[Date],[UpdateTime],[Project],[Subject],[Leixing],[Bibie],[Count],[Remark],[CreateUser],[UpdataUser],[FormId],[ExtFeeForm],[SignFlow],[ExtPurchasePortalId]) 
+                        VALUES
+                        (@Company,@EmpName,@EmpNum,@Date,@UpdateTime,@Project,@Subject,@Leixing,@Bibie,@Count,@Remark,@CreateUser,@UpdataUser,@FormId,@ExtFeeForm,@SignFlow,@ExtPurchasePortalId)", 1,
+                                 new SqlParameter("@Company", SqlDbType.NVarChar) { Value = feeModel.Company },
+                                 new SqlParameter("@EmpName", SqlDbType.NVarChar) { Value = feeModel.EmpName },
+                                 new SqlParameter("@EmpNum", SqlDbType.NVarChar) { Value = feeModel.EmpNum },
+                                 new SqlParameter("@Date", SqlDbType.DateTime) { Value = feeModel.Date },
+                                 new SqlParameter("@UpdateTime", SqlDbType.DateTime) { Value = feeModel.Date },
+                                 new SqlParameter("@Project", SqlDbType.NVarChar) { Value = feeModel.Project },
+                                 new SqlParameter("@Subject", SqlDbType.NVarChar) { Value = feeModel.Subject },
+                                 new SqlParameter("@Leixing", SqlDbType.NVarChar) { Value = feeModel.Leixing },
+                                 new SqlParameter("@Bibie", SqlDbType.NVarChar) { Value = feeModel.Bibie },
+                                 new SqlParameter("@Count", SqlDbType.Decimal) { Value = feeModel.Count },
+                                 new SqlParameter("@Remark", SqlDbType.NVarChar) { Value = feeModel.Remark },
+                                 new SqlParameter("@CreateUser", SqlDbType.NVarChar) { Value = feeModel.CreateUser },
+                                 new SqlParameter("@UpdataUser", SqlDbType.NVarChar) { Value = feeModel.CreateUser },
+                                 new SqlParameter("@FormId", SqlDbType.NVarChar) { Value = feeModel.FormId },
+                                 new SqlParameter("@SignFlow", SqlDbType.NVarChar) { Value = "新增" },
+                                 new SqlParameter("@ExtFeeForm", SqlDbType.NVarChar) { Value = feeModel.ExtFeeForm },
+                                 new SqlParameter("@ExtPurchasePortalId", SqlDbType.NVarChar) { Value = feeModel.ExtPurchasePortalId });
+            return res;
+        }
+        #endregion
+        #region 7.0 刪除費用申請單(軟刪除) + SoftDellFee(Fee feeModel)
+        /// <summary>
+        /// 7.0 刪除費用申請單(軟刪除) + SoftDellFee(Fee feeModel)
+        /// </summary>
+        /// <param name="feeModel">要刪除的費用MODEL</param>
+        /// <returns>受影響的行數</returns>
+        public int SoftDellFee(Fee feeModel)
+        {
+            var res = SqlHelper.ExecuteNonQuery(@"delete from  [dbo].[WF_WORKSHEET_GRID_Fee] WHERE id=@id", 1,
+                new SqlParameter("@id", SqlDbType.Int) {Value = feeModel.Id });
+            return res;
+        }
+        #endregion
+        #region 8.0 更新選中的費用申請單 +int UpdataFeeData(Fee feeModel)
+        /// <summary>
+        /// 2.5 更新已申請過的費用申請單 +int UpdataFeeData(Fee feeModel)
+        /// </summary>
+        /// <param name="feeModel"></param>
+        /// <returns>受影響的行數</returns>
+        public int UpdataFeeData(Fee feeModel)
+        {
+            var res = SqlHelper.ExecuteNonQuery(@"UPDATE [dbo].[WF_WORKSHEET_GRID_Fee] SET 
+             [Project]=@Project,[Subject] = @Subject,[Leixing] = @Leixing,
+             [Bibie] = @Bibie,[Count] = @Count,[Remark] = @Remark,[Company] = @Company,
+             [UpdateTime]=@UpdateTime,[UpdataUser] = @UpdateUser,[SignFlow]=@SignFlow,[ExtFeeForm]=@ExtFeeForm WHERE id = @id", 1,
+                    new SqlParameter("@Project", SqlDbType.NVarChar) { Value = feeModel.Project },
+                    new SqlParameter("@Subject", SqlDbType.NVarChar) { Value = feeModel.Subject },
+                    new SqlParameter("@Leixing", SqlDbType.NVarChar) { Value = feeModel.Leixing },
+                    new SqlParameter("@Bibie", SqlDbType.NVarChar) { Value = feeModel.Bibie },
+                    new SqlParameter("@Count", SqlDbType.Decimal) { Value = feeModel.Count },
+                    new SqlParameter("@Remark", SqlDbType.NVarChar) { Value = feeModel.Remark },
+                    new SqlParameter("@Company", SqlDbType.NVarChar) { Value = feeModel.Company },
+                    new SqlParameter("@UpdateUser", SqlDbType.NVarChar) { Value = feeModel.UpdateUser },
+                    new SqlParameter("@UpdateTime", SqlDbType.DateTime) { Value = feeModel.UpdateTime },
+                    new SqlParameter("@id", SqlDbType.Int) { Value = feeModel.Id },
+                    new SqlParameter("@SignFlow", SqlDbType.NVarChar) { Value = "新增" },
+                    new SqlParameter("@ExtFeeForm", SqlDbType.NVarChar) { Value = feeModel.ExtFeeForm });
+            return res;
+        }
+        #endregion
+        #region 9.0 更新費用申請單送出後的狀態(新增portalId) +int UpdateFeeDataTypeByportalId(string portalId, string formId)
+        /// <summary>
+        /// 4.0 更新已費用申請單送出後的狀態(新增portalId)
+        /// </summary>
+        /// <param name="portalId">表單Id</param>
+        /// <param name="formId">表單Id對應的formId</param>
+        /// <param name="signFlow"></param>
+        /// <returns></returns>
+        public int UpdateFeeDataSignFlow(string portalId, string formId, string signFlow)
+        {
+            var res = SqlHelper.ExecuteNonQuery(@"UPDATE [Fee].[dbo].[WF_WORKSHEET_GRID_Fee]
+                    SET [portalId] = @portalId,[SignFlow]=@SignFlow where [FormId] = @formId", 1,
+                        new SqlParameter("@portalId", SqlDbType.NVarChar) { Value = portalId },
+                        new SqlParameter("@SignFlow", SqlDbType.NVarChar) { Value = signFlow },
+                        new SqlParameter("@formId", SqlDbType.NVarChar) { Value = formId });
+            return res;
+        }
+        #endregion
+        #region 9.1 更新費用申請單送出後的狀態(流程更新) +int UpdateFeeDataTypeByportalId(string portalId, string formId)
+        /// <summary>
+        /// 4.1更新費用申請單送出後的狀態(新增portalId)
+        /// </summary>
+        /// <param name="portalId">表單Id</param>
+        /// <param name="signFlow">簽核狀態</param>
+        /// <param name="isbohui">是否是駁回表單</param>
+        /// <returns>是否更新成功</returns>
+        public int UpdateFeeDataSignFlowByPortalId(string portalId, string signFlow, bool isbohui)
+        {
+            var res = SqlHelper.ExecuteNonQuery(@"UPDATE [Fee].[dbo].[WF_WORKSHEET_GRID_Fee]
+                    SET [IsBoHui] = @IsBoHui,[SignFlow]=@SignFlow where [portalId] = @portalId  and [SignFlow] <> '刪除'",1,
+                new SqlParameter("@IsBoHui", SqlDbType.Bit) {Value = isbohui},
+                new SqlParameter("@portalId", SqlDbType.NVarChar) {Value = portalId},
+                new SqlParameter("@SignFlow", SqlDbType.NVarChar) {Value = signFlow});
+            return res;
+        }
+        #endregion
+
+        //尚未更改------------------------------------------------------
+        #region 2.4 根據PORTALID刪除費用申請單(軟刪除) + int SoftDellFeeByPortalId(int id, string user, bool isDel)
+        /// <summary>
+        /// 2.4  根據ID刪除費用申請單(軟刪除)
+        /// </summary>
+        /// <param name="id">表單ID</param>
+        /// <param name="user">更新人員</param>
+        /// <param name="isDel">是否刪除</param>
+        /// <returns>受影響的行數</returns>
+        public int SoftDellFeeByPortalId(string poratlId, string user, bool isDel)
+        {
+            int res = SqlHelper.ExecuteNonQuery(@"UPDATE [dbo].[WF_WORKSHEET_GRID_Fee]
+                            SET [UpdataUser] = @UpdataUser
+                               ,[Isdel] = @Isdel
+                               ,[SignFlow] = @SignFlow
+                            WHERE portalId=@portalId [SignFlow] <> '刪除' ", 1,
+                new SqlParameter("@UpdataUser", SqlDbType.NVarChar) { Value = user },
+                new SqlParameter("@Isdel", SqlDbType.Bit) { Value = isDel },
+                new SqlParameter("@portalId", SqlDbType.NVarChar) { Value = poratlId },
+                new SqlParameter("@SignFlow", SqlDbType.NVarChar) { Value = "刪除" }); ;
+            return res;
+        }
+        #endregion
+
+        //Print-------------------------------------------------------------------------
+        #region 取得表單ID For 線上列印使用
+        /// <summary>
+        /// 取得表單ID For 線上列印使用
+        /// </summary>
+        /// <returns></returns>
+        public string GetFormIdForPrint(string portalId)
+        {
+            object obj = SqlHelper.ExecuteScalar(@"SELECT [FormId]
+                  FROM [Fee].[dbo].[WF_WORKSHEET_GRID_Fee] as Fee
+                  where Fee.portalId = @portalId", 1, new SqlParameter("@portalId", SqlDbType.NVarChar) { Value = portalId });
+            if (obj == null)
+            {
+                return "";
+            }
+            else
+            {
+                return obj.ToString();
+            }
+        }
+        #endregion
+        #region 返回WF_WORKSHEET_GRID_Fee的所有數據For Print使用 +List<Fee> GetAllFeeData()
+        /// <summary>
+        /// 返回WF_WORKSHEET_GRID_Fee的所有數據For Print使用
+        /// </summary>
+        /// <returns>WF_WORKSHEET_GRID_Fee數據For Print使用</returns>
+        public List<Fee> GetAllFeeDataForPrint(string formId)
+        {
+            List<Fee> list = null;
+            DataTable table = SqlHelper.ExecuteDataTable(@"SELECT 
+                fee.ID,fee.Date,fee.Subject,fee.Count,fee.Remark,
+                fee.CreateUser,fee.UpdataUser,
+                fee.Isdel,fee.Bibie,fee.Leixing,gd.selText,gd.selValue,gd.selGroup,fee.formId,bibie.bValue,emp.EMPLOYEE_CNAME,project
+                FROM [Fee].[dbo].[WF_WORKSHEET_GRID_Fee] as fee
+                inner join [Fee].[dbo].[GridDataFee] as gd
+                on gd.selValue = fee.Leixing
+                inner join [Fee].[dbo].[GridDataBibie] as bibie
+                on Bibie.bText = fee.Bibie --and
+                inner join [54661506].[dbo].[HRMS_EMPLOYEE] as emp
+                on emp.EMPLOYEE_NO  = fee.CreateUser
+                where Isdel = 0 and fee.FormId = @formId
+                order by fee.ID asc", 1, new SqlParameter("@formId", SqlDbType.NVarChar) { Value = formId });
+            if (table != null && table.Rows.Count > 0)
+            {
+                list = new List<Fee>(table.Rows.Count);
+                for (int i = 0; i < table.Rows.Count; i++)
+                {
+                    DataRow rows = table.Rows[i];
+                    list.Add(row2modelPrint(rows));
+                }
+            }
+            return list;
+        }
+        #endregion
+        #region 生成MODEL數據 -Print - row2modelPrint(DataRow rows)
+        /// <summary>
+        /// 生成MODEL數據 -Print
+        /// </summary>
+        /// <param name="rows"></param>
+        /// <returns>Fee </returns>
+        Fee row2modelPrint(DataRow rows)
+        {
+            var fee = new Fee
+            {
+                Id = (int) rows["ID"],
+                Date = (DateTime) rows["Date"],
+                Subject = rows["Subject"].ToString(),
+                Count = PageHelper.GetDoubleType(rows["Bibie"].ToString(), Convert.ToDouble(rows["Count"])),
+                Remark = rows["Remark"].ToString(),
+                CreateUser = rows["CreateUser"].ToString(),
+                UpdateUser = rows["UpdataUser"].ToString(),
+                Isdel = (bool) rows["Isdel"],
+                Bibie = rows["Bibie"].ToString(),
+                Leixing = (int) rows["Leixing"],
+                FormId = rows["formId"].ToString(),
+                Project = rows["project"].ToString(),
+                IdToText = new GridData {selText = rows[10].ToString(), selValue = rows[11].ToString()},
+                bValue = new Bibie {BValue = rows[14].ToString()},
+                FrempName = new Employee {EMPLOYEE_Cname = rows["EMPLOYEE_CNAME"].ToString()}
+            };
+            return fee;
+        }
+        #endregion
+
+        //重送和駁回------------------------------------------------------------------------------
+        #region 1.0 FeeData 若為重送或駁回,則要先取出舊有的行ID
+        /// <summary>
+        /// 1.0 FeeData 若為重送或駁回,則要先取出舊有的行ID
+        /// </summary>
+        /// <param name="portalId">送出表單後的ID</param>
+        /// <returns>查詢到的rowId</returns>
+        public string RecallRowId(string portalId)
+        {
+            var table = SqlHelper.ExecuteDataTable(@"Select [ID] from [Fee].[dbo].[WF_WORKSHEET_GRID_Fee]
+  where PortalId = @PortalId", 1, new SqlParameter("@PortalId", SqlDbType.NVarChar) { Value = portalId });
+            var ids = string.Empty;
+            if (table.Rows.Count <= 0) return ids;
+            for (var i = 0; i < table.Rows.Count; i++)
+            {
+                var rows = table.Rows[i];
+                if (table.Rows.Count > 1)
+                {
+                    ids += "'" + rows["ID"].ToString() + "'" + ",";
+                }
+                else
+                {
+                    ids += "'" + rows["ID"].ToString() + "'";
+                }
+            }
+            return ids;
+        }
+        #endregion
+        #region 1.1 XinxiData若為重送或駁回,則要先取出舊有的行ID
+        /// <summary>
+        /// 1.1 若為重送或駁回,則要先取出舊有的行ID
+        /// </summary>
+        /// <param name="portalId"></param>
+        /// <returns></returns>
+        public string RecallXinxiRowId(string portalId)
+        {
+            var table = SqlHelper.ExecuteDataTable(@"select [ID] from [Fee].[dbo].[Receiver]
+  where PortalId = @PortalId", 1, new SqlParameter("@PortalId", SqlDbType.NVarChar) { Value = portalId });
+            var ids = string.Empty;
+            if (table.Rows.Count <= 0) return ids;
+            for (var i = 0; i < table.Rows.Count; i++)
+            {
+                var rows = table.Rows[i];
+                if (table.Rows.Count > 1)
+                {
+                    ids += "'" + rows["ID"].ToString() + "'" + ",";
+                }
+                else
+                {
+                    ids += "'" + rows["ID"].ToString() + "'";
+                }
+            }
+            return ids;
+        }
+        #endregion
+        #region 2.0 當流程為重送或是駁回,使用者有點擊送出,則要複製資料
+        /// <summary>
+        /// 2.0 當流程為重送或是駁回,使用者有點擊送出,則要複製資料
+        /// </summary>
+        /// <param name="portalId">要重送的portalId</param>
+        /// <returns>受影響的行數</returns>
+        public bool CopyRecallData(string portalId)
+        {
+            //複製費用申請單
+            var res = SqlHelper.ExecuteNonQuery(@"INSERT INTO [Fee].[dbo].[WF_WORKSHEET_GRID_Fee]
+                                   ([Company],[EmpName],[EmpNum],[Date],[UpdateTime]
+                                   ,[Project],[Subject],[Leixing],[Bibie]
+                                   ,[Count],[Remark],[CreateUser],[UpdataUser]
+                                   ,[FormId],[portalId],[ExtFeeForm],[SignFlow]
+                                   ,[Isdel],[IsHexiao])
+                                Select [Company],[EmpName],[EmpNum],[Date],[UpdateTime]
+                                   ,[Project],[Subject],[Leixing],[Bibie]
+                                   ,[Count],[Remark],[CreateUser],[UpdataUser]
+                                   ,[FormId],[portalId],[ExtFeeForm],[SignFlow]
+                                   ,[Isdel],[IsHexiao] from [Fee].[dbo].[WF_WORKSHEET_GRID_Fee]
+                                    where PortalId = @PortalId and IsDel = 0", 1,
+                             new SqlParameter("@PortalId", SqlDbType.NVarChar) { Value = portalId });
+            //複製匯款信息
+            //ps.匯款信息有可能此筆費用申請單會沒有,所以回傳時可以略過不判斷是否有複製成功
+            SqlHelper.ExecuteNonQuery(@"INSERT INTO [Fee].[dbo].[Receiver]
+                           ([People],[Payment],[Account],[Bank],[Date]
+                           ,[Remark],[FormId],[PortalId],[CreateTime]
+                           ,[UpdateTime],[CreateUser])
+                     Select [People],[Payment],[Account],[Bank],[Date]
+                           ,[Remark],[FormId],[PortalId],[CreateTime]
+                           ,[UpdateTime],[CreateUser]from [Fee].[dbo].[Receiver]
+                            where PortalId = @PortalId", 1,
+                new SqlParameter("@PortalId", SqlDbType.NVarChar) { Value = portalId });
+            return res > 0;
+        }
+        #endregion
+        #region 3.0 複製完要重送的資料後,更新新資料的欄位
+        /// <summary>
+        /// 3.0 複製完要重送的資料後,更新新資料的欄位
+        /// </summary>
+        /// <param name="rowId">行ID</param>
+        /// <param name="newFormId">新的FormId</param>
+        /// <param name="portalId">重送or駁回的Id</param>
+        /// <returns>受影響的行數</returns>
+        public int RecallRowUpdate(string rowId, string newFormId, string portalId)
+        {
+            var fin = -1;
+            var rows = rowId.Split('|');
+            //複製完成後更新 新的行_Start
+            var res = SqlHelper.ExecuteNonQuery(string.Format(@"Update [Fee].[dbo].[WF_WORKSHEET_GRID_Fee]
+                set SignFlow ='新增',Date = Getdate(),UpdateTime = Getdate(),
+                    FormId=@FormId,ReCallPortalId=@ReCallPortalId
+                    where PortalId = @PortalId and IsDel = 0 and ID NOT IN({0})", rows[0]), 1,
+                new SqlParameter("@FormId", SqlDbType.NVarChar) { Value = newFormId },
+                new SqlParameter("@PortalId", SqlDbType.NVarChar) { Value = portalId },
+                new SqlParameter("@ReCallPortalId", SqlDbType.NVarChar) { Value = portalId });
+            //因為可能會沒有匯款資料,所以要先判斷是否有匯款資料的Id
+            if (rows[1] != "")
+            {
+                var res2 = SqlHelper.ExecuteNonQuery(string.Format(@"Update [Fee].[dbo].[Receiver]
+                set CreateTime = Getdate(),UpdateTime = Getdate(),
+                    FormId=@FormId,ReCallPortalId=@ReCallPortalId
+                    where PortalId = @PortalId and ID NOT in({0})", rows[1]), 1,
+                    new SqlParameter("@FormId", SqlDbType.NVarChar) {Value = newFormId},
+                    new SqlParameter("@PortalId", SqlDbType.NVarChar) {Value = portalId},
+                    new SqlParameter("@ReCallPortalId", SqlDbType.NVarChar) { Value = portalId });
+                SqlHelper.ExecuteNonQuery(@"Update [Fee].[dbo].[Receiver]
+                     set PortalId= '無' where FormId = @FormId", 1,
+                                       new SqlParameter("@FormId", SqlDbType.NVarChar) { Value = newFormId });
+            }
+            //複製完成後更新 新的行_End
+
+            //如果受影響的行數小於0, 則代表更新失敗,直接返回
+            if (res <= 0) return fin;
+            //更新成功後,更新portalId欄位(用新的formId更新)
+            fin = SqlHelper.ExecuteNonQuery(@"Update [Fee].[dbo].[WF_WORKSHEET_GRID_Fee]
+                     set PortalId= '無' where FormId = @FormId", 1, 
+                        new SqlParameter("@FormId", SqlDbType.NVarChar) { Value = newFormId });
+            if (fin > 0)
+            {
+                //再更新IsBoHui欄位
+                fin = SqlHelper.ExecuteNonQuery(string.Format(@"Update [Fee].[dbo].[WF_WORKSHEET_GRID_Fee]
+                     set IsBoHui= 0 where ID IN({0})", rows[0]), 1);
+            }
+            return fin;
+        }
+        #endregion
+
+        public string RecallFeeForm(string portalId)
+        {
+            var formid = SqlHelper.ExecuteScalar("exec sp_usp_FeeFormRecall @portalId",1,
+                new SqlParameter("@portalId", SqlDbType.NVarChar) {Value = portalId});
+            return !string.IsNullOrEmpty(formid.ToString()) ? formid.ToString() : "-1";
+        }
+        //Row2Model--------------------------------------------------
+        #region 1.0  預算科目Row2Sel數據 - Row2Sel(DataRow rows)
+        /// <summary>
+        /// 1.0  預算科目Row2Sel數據 - Row2Sel(DataRow rows)
+        /// </summary>
+        /// <param name="rows">當前遍歷到的行</param>
+        /// <returns>賦值完的MODEL</returns>
+        GridData Row2Sel(DataRow rows)
+        {
+            GridData grid = new GridData();
+            grid.selValue = rows[0].ToString();
+            grid.selText = rows[1].ToString();
+            return grid;
+        }
+        #endregion
+        #region 2.0 生成Fee MODEL數據 - Row2model(DataRow rows)
+        /// <summary>
+        /// 2.0 生成MODEL數據 - Row2model(DataRow rows)
+        /// </summary>
+        /// <param name="rows">當前遍歷到的行</param>
+        /// <returns>賦值完的數據</returns>
+        Fee Row2Model(DataRow rows)
+        {
+            return new Fee
+            {
+                Id = (int) rows["ID"],
+                EmpNum = rows["EmpNum"].ToString(),
+                Date = (DateTime) rows["Date"],
+                Company = rows["Company"].ToString(),
+                Project = rows["project"].ToString(),
+                Subject = rows["Subject"].ToString(),
+                Count = PageHelper.GetDoubleType(rows["Bibie"].ToString(), Convert.ToDouble(rows["Count"])),
+                Remark = rows["Remark"].ToString(),
+                CreateUser = rows["CreateUser"].ToString(),
+                UpdateUser = rows["UpdataUser"].ToString(),
+                Isdel = (bool) rows["Isdel"],
+                Bibie = rows["Bibie"].ToString(),
+                Leixing = (int) rows["Leixing"],
+                FormId = rows["formId"].ToString(),
+                IdToText =
+                    new GridData
+                    {
+                        selText = SubStringSubject((int) rows["Leixing"], rows["selText"].ToString()),
+                        selValue = rows["selValue"].ToString()
+                    },
+                bValue = new Bibie {BValue = rows[14].ToString()},
+                portalId = rows["portalId"] == null ? "" : rows["portalId"].ToString(),
+                ExtFeeForm = GetExtFeeFormStr(rows["ExtFeeForm"].ToString()),
+                OriginalCount = rows["Count"].ToString() ,
+                ReCallPortalId = rows["ReCallPortalId"].ToString(),
+                ExtPurchasePortalId = rows["ExtPurchasePortalId"].ToString(),
+                OriCount = (decimal)rows["Count"]
+            };
+        }
+        #endregion
+        private static string GetExtFeeFormStr(string extFeeform)
+        {
+            string feeform;
+            switch(extFeeform)
+            {
+                case "無":
+                    feeform = "無";
+                    break;
+                case "請選擇":
+                    feeform = "無";
+                    break;
+                case "0":
+                    feeform = "無";
+                    break;
+                default:
+                    feeform = extFeeform;
+                    break;
+            }
+            return feeform;
+        }
+
+        //List頁面用-------------------------------------------------
+        #region 0.0 查詢是否有被駁回的表單
+        /// <summary>
+        /// 0.0 查詢是否有被駁回的表單
+        /// </summary>
+        /// <param name="empNum">員工姓名</param>
+        /// <returns>查詢到的結果集</returns>
+        public List<Fee> GetListFeeDataIsBoHui(string empNum)
+        {
+            var table = SqlHelper.ExecuteDataTable(@"select gd.selText as LeiName, fee.Project,
+                                fee.Leixing,fee.Subject,fee.Bibie,
+                                fee.Remark,fee.Count,fee.ExtFeeForm,
+                                fee.SignFlow,fee.portalId FROM [Fee].[dbo].[WF_WORKSHEET_GRID_Fee] as fee
+                                inner join [Fee].[dbo].[GridDataFee] as gd
+                                on gd.selValue = fee.Leixing
+                        where fee.EmpName = @empNum and IsBoHui = 1", 1,
+                            new SqlParameter("@empNum", SqlDbType.NVarChar) { Value = empNum });
+            if (table.Rows.Count <= 0) return null;
+            var listStr = new List<Fee>(table.Rows.Count);
+            for (var i = 0; i < table.Rows.Count; i++)
+            {
+                var rows = table.Rows[i];
+                listStr.Add(new Fee
+                {
+                    Project = rows["Project"].ToString(),
+                    IdToText =
+                        new GridData
+                        {
+                            selText = SubStringSubject(Convert.ToInt32(rows["Leixing"]), rows["LeiName"].ToString())
+                        },
+                    Leixing = Convert.ToInt32(rows["Leixing"]),
+                    Subject = rows["Subject"].ToString(),
+                    Bibie = rows["Bibie"].ToString(),
+                    Remark = rows["Remark"].ToString(),
+                    Count = PageHelper.GetDoubleType(rows["Bibie"].ToString(), Convert.ToDouble(rows["Count"])),
+                    ExtFeeForm = rows["ExtFeeForm"].ToString().StartsWith("201")  ? rows["ExtFeeForm"].ToString() : "無",
+                    portalId = rows["PortalId"].ToString(),
+                    SignFlow = rows["SignFlow"].ToString()
+                });
+            }
+            return listStr;
+        } 
+        #endregion
+        #region 1.0 取得有新增過的費用申請單但是尚未送出
+        /// <summary>
+        /// 1.0 取得有新增過的費用申請單但是尚未送出
+        /// </summary>
+        /// <param name="empNum">員工編號</param>
+        /// <returns>查詢到的費用申請單資料</returns>
+        public List<Fee> GetListFeeData(string empNum)
+        {
+            var table = SqlHelper.ExecuteDataTable(@"select 
+                                gd.selText as LeiName,
+                                fee.Project,
+                                fee.Leixing,
+                                fee.Subject,
+                                fee.Bibie,
+                                fee.Remark,
+                                fee.Count,
+                                fee.ExtFeeForm,
+                                fee.FormId FROM [Fee].[dbo].[WF_WORKSHEET_GRID_Fee] as fee
+                                inner join [Fee].[dbo].[GridDataFee] as gd
+                                on gd.selValue = fee.Leixing
+                where fee.EmpName = @EmpName and fee.SignFlow = '新增'  and fee.Isdel = 0
+                order by fee.FormId asc", 1,
+         new SqlParameter("@EmpName", SqlDbType.NVarChar) { Value = empNum });
+            if (table.Rows.Count <= 0) return null;
+            var listFee = new List<Fee>(table.Rows.Count);
+            for (var i = 0; i < table.Rows.Count; i++)
+            {
+                var rows = table.Rows[i];
+                var feeModel = new Fee
+                {
+                    Project = rows["Project"].ToString(),
+                    IdToText =
+                        new GridData()
+                        {
+                            selText = SubStringSubject(Convert.ToInt32(rows["Leixing"]), rows["LeiName"].ToString())
+                        },
+                    Leixing = Convert.ToInt32(rows["Leixing"]),
+                    Subject = rows["Subject"].ToString(),
+                    Bibie = rows["Bibie"].ToString(),
+                    Remark = rows["Remark"].ToString(),
+                    Count = PageHelper.GetDoubleType(rows["Bibie"].ToString(), Convert.ToDouble(rows["Count"])),
+                    ExtFeeForm = rows["ExtFeeForm"].ToString(),
+                    FormId = rows["FormId"].ToString()
+                };
+                listFee.Add(feeModel);
+            }
+            return listFee;
+        } 
+        #endregion
+        #region 2.0 根據FormId刪除申請過的費用申請單
+        /// <summary>
+        /// 2.0 根據FormId刪除申請過的費用申請單
+        /// </summary>
+        /// <param name="formId">要刪除的formId</param>
+        /// <returns>受影響的行數</returns>
+        public int DelList(string formId)
+        {
+            var res = SqlHelper.ExecuteScalar(@"exec sp_usp_FeeFormListDel @formId", 1,
+                new SqlParameter("@formId", SqlDbType.NVarChar) { Value = formId }).ToString();
+            return int.Parse(res);
+        } 
+        #endregion
+        #region 3.0 List頁面刪除表單後 一併刪除匯款信息
+        /// <summary>
+        /// 3.0 List頁面刪除表單後 一併刪除匯款信息
+        /// </summary>
+        /// <param name="formId">表單ID</param>
+        /// <returns>刪除結果</returns>
+        public bool DelReceiver(string formId)
+        {
+            var res = SqlHelper.ExecuteNonQuery(@"delete FROM [Fee].[dbo].[Receiver] where FormId = @FormId", 1, 
+                new SqlParameter("@FormId", SqlDbType.NVarChar) { Value = formId });
+            return res > 0;
+        } 
+        #endregion
+        #region 4.0 獲取預算類型簡短文字
+        /// <summary>
+        /// 4.0 獲取預算類型簡短文字
+        /// </summary>
+        /// <param name="selValue">Leixing</param>
+        /// <param name="selName">Text</param>
+        /// <returns></returns>
+        string SubStringSubject(int selValue, string selName)
+        {
+            string strs = "";
+            switch (selValue)
+            {
+                case 1001:
+                    strs = selName.Substring(0, 6);
+                    break;
+                case 2001:
+                    strs = selName.Substring(0, 2);
+                    break;
+                case 3001:
+                    strs = selName.Substring(0, 2);
+                    break;
+                case 4001:
+                    strs = selName.Substring(0, 2);
+                    break;
+                case 5001:
+                    strs = selName.Substring(0, 4);
+                    break;
+                case 6001:
+                    strs = selName.Substring(0, 2);
+                    break;
+                case 7001:
+                    strs = selName.Substring(0, 5);
+                    break;
+                case 8001:
+                    strs = selName.Substring(0, 4);
+                    break;
+                case 9001:
+                    strs = selName.Substring(0, 2);
+                    break;
+                case 10001:
+                    strs = selName.Substring(0, 2);
+                    break;
+                case 10002:
+                    strs = selName.Substring(0, 2);
+                    break;
+                case 10003:
+                    strs = selName.Substring(0, 5);
+                    break;
+            }
+            return strs;
+        } 
+        #endregion
+
+        //簽核用-----------------------------------------------------
+        #region 1.0 查詢WORK_SHEET_DATA_ID
+        /// <summary>
+        /// 1.0 查詢WORK_SHEET_DATA_ID
+        /// </summary>
+        /// <param name="portalId">流程用ID</param>
+        /// <returns>查詢到的WORK_SHEET_DATA_ID</returns>
+        public string GetWorkSheetDataId(string portalId)
+        {
+            var obj = SqlHelper.ExecuteScalar(@"select 
+                          WFW.WORKSHEET_DATA_ID as id
+                          from  [54661506_WF].[dbo].[WF_WORKSHEET_DATA] as WFW
+                          where WORKSHEET_DATA_VIEW_ID = @portalId", 1,
+                           new SqlParameter("@portalId", SqlDbType.NVarChar) { Value = portalId });
+            return obj.ToString();
+        } 
+        #endregion
+        #region 2.0 更新Flow用的費用申請單欄位
+        /// <summary>
+        /// 2.0 更新Flow用的費用申請單欄位
+        /// </summary>
+        /// <param name="workId">worksheetData_id</param>
+        /// <param name="feeModel">要更新的對象值</param>
+        /// <param name="selText"></param>
+        /// <param name="date">日期</param>
+        /// <param name="totalCount">總費用</param>
+        /// <param name="orgCount">申請費用</param>
+        /// <returns>受影響的行數</returns>
+        public int UpdateSheetFeeForFlow(string workId, Fee feeModel, string selText, string date, string totalCount, decimal orgCount)
+        {
+            var res = SqlHelper.ExecuteNonQuery(@"Update [54661506_WF].[dbo].[WF_WORKSHEET_DATA_108]
+                 set [uc_9] = @originCount, [uc_22] = @project,[uc_23] = @Subject,[uc_24] = @selText,[uc_25] = @Date,[uc_26] = @Bibie,
+                        [uc_27] = @Remark,[uc_28] = @Count,[uc_29] = @ExtFeeForm
+                        where [WORKSHEET_DATA_ID] =@WORKSHEET_DATA_ID", 1,
+                        new SqlParameter("@originCount", SqlDbType.NVarChar) { Value = orgCount },
+                        new SqlParameter("@project", SqlDbType.NVarChar) { Value = feeModel.Project.TrimEnd('-') },
+                        new SqlParameter("@Subject", SqlDbType.NVarChar) { Value = selText.TrimEnd('-') },
+                        new SqlParameter("@selText", SqlDbType.NVarChar) { Value = feeModel.Subject.TrimEnd('-') },
+                        new SqlParameter("@Date", SqlDbType.NVarChar) { Value = date.TrimEnd('-') },
+                        new SqlParameter("@Bibie", SqlDbType.NVarChar) { Value = feeModel.Bibie.TrimEnd('-') },
+                        new SqlParameter("@Remark", SqlDbType.NVarChar) { Value = feeModel.Remark.TrimEnd('-') },
+                        new SqlParameter("@Count", SqlDbType.NVarChar) { Value = totalCount.TrimEnd('-') },
+                        new SqlParameter("@ExtFeeForm", SqlDbType.NVarChar) { Value = feeModel.ExtFeeForm.TrimEnd('-') },
+                        new SqlParameter("@WORKSHEET_DATA_ID", SqlDbType.NVarChar) { Value = workId.TrimEnd('-') });
+            return res;
+        } 
+        #endregion
+        #region 3.0 Sign- 根據portalId查詢簽核流程
+        /// <summary>
+        /// 3.0 Sign- 根據portalId查詢簽核流程
+        /// </summary>
+        /// <param name="workId">簽核的表單Id</param>
+        /// <returns></returns>
+        public List<SignModel> GetFormSignFlow(string workId)
+        {
+            if (string.IsNullOrEmpty(workId)) return null;
+            var table = SqlHelper.ExecuteDataTable(@"exec usp_GetSignFlow @workId", 1,
+                new SqlParameter("@workId", SqlDbType.NVarChar) { Value = workId });
+            if (table.Rows.Count <= 0) return null;
+            var list = new List<SignModel>(table.Rows.Count);
+            for (int i = 0; i < table.Rows.Count; i++)
+            {
+                var rows = table.Rows[i];
+                list.Add(new SignModel()
+                {
+                    SignEmployee = rows["簽核人"].ToString(),
+                    ApprovalResult = rows["簽核狀態"].ToString(),
+                    Comment = rows["評論"].ToString(),
+                    ActionTime = Convert.ToDateTime(rows["簽核時間"])
+                });
+            }
+            return list;
+        }
+        #endregion
+        #region 4.0 Sign- 取得一二階主管姓名
+        /// <summary>
+        /// 4.0 Sign- 取得一二階主管姓名
+        /// </summary>
+        /// <param name="empName">登入使用者名稱</param>
+        /// <param name="level">主管階級</param>
+        /// <returns>主管姓名</returns>
+        public string GetFirstTopicBoss(string empName, int level)
+        {
+            DataTable table = SqlHelper.ExecuteDataTable(@"select ep.TOPIC_FIRST_BOSS_ID,ep.TOPIC_SECOND_BOSS_ID from  [54661506].[dbo].[HRMS_EMPLOYEE]  as ep
+                where ep.EMPLOYEE_CNAME = @empName", 4, new SqlParameter("@empName", SqlDbType.NVarChar) { Value = empName });
+            if (table.Rows.Count > 0)
+            {
+                for (int i = 0; i < table.Rows.Count; i++)
+                {
+                    DataRow rows = table.Rows[i];
+                    switch (level)
+                    {
+                        case 1:
+                            object obj = SqlHelper.ExecuteScalar("select ep.EMPLOYEE_CNAME from  [54661506].[dbo].[HRMS_EMPLOYEE]  as ep where ep.EMPLOYEE_ID = @epId", 1, new SqlParameter("@epId", SqlDbType.Int) { Value = Convert.ToInt32(rows[0]) });
+                            return obj.ToString();
+                        case 2:
+                            object second = SqlHelper.ExecuteScalar("select ep.EMPLOYEE_CNAME from  [54661506].[dbo].[HRMS_EMPLOYEE]  as ep where ep.EMPLOYEE_ID = @epId", 1, new SqlParameter("@epId", SqlDbType.Int) { Value = Convert.ToInt32(rows[1]) });
+                            return second.ToString();
+                    }
+                }
+            }
+            return "";
+        }
+        #endregion
+        #region 5.0 取得員工所屬部門
+        /// <summary>
+        /// 5.0 取得員工所屬部門
+        /// </summary>
+        /// <param name="empNum">員工編號</param>
+        /// <returns>所屬部門</returns>
+        public string GetDepartmentNum(string empNum)
+        {
+            var obj = SqlHelper.ExecuteScalar(@"Select dp.DEPARTMENT_CNAME from [54661506].[dbo].[HRMS_EMPLOYEE] as hr
+                              inner join [54661506].[dbo].[HRMS_DEPARTMENT] as dp
+                              on hr.DEPARTMENT_ID = dp.DEPARTMENT_ID
+                              where hr.EMPLOYEE_NO = @EMPLOYEE_NO", 4,
+                              new SqlParameter("@EMPLOYEE_NO", SqlDbType.NVarChar) { Value = empNum });
+            return obj.ToString();
+        } 
+        #endregion
+        //預支單-----------------------------------------------------
+        #region 1.0 讀取已申請過的費用預支單(簽核完成) +List<Prepay> GetAllPrepayForm(string uName)
+        /// <summary>
+        /// 1.0 讀取已申請過的費用預支單(簽核完成)
+        /// 尋找邏輯:查詢Portal上 已簽核完成 並 尚未核銷過的 費用預支單.
+        /// </summary>
+        /// <param name="uName">申請人姓名</param>
+        /// <returns></returns>
+        public List<Prepay> GetAllPrepayForm(string uName)
+        {
+            var table = SqlHelper.ExecuteDataTable(@"SELECT  
+                            rea.CHECKPOINT_TITLE as title,
+                            preapy.WORKSHEET_DATA_ID as id,
+                            wfw.WORKSHEET_DATA_VIEW_ID as pid
+                            FROM [54661506_WF].[dbo].[WF_WORKSHEET_DATA_74] as preapy
+                            inner join  [54661506_WF].[dbo].[WF_ANALYZED_FLOW_PATH_REA]  as rea
+                            on rea.WORKSHEET_DATA_ID = preapy.WORKSHEET_DATA_ID
+                            inner join   [54661506_WF].[dbo].[WF_WORKSHEET_DATA] as WFW
+                            on wfw.WORKSHEET_DATA_ID = rea.WORKSHEET_DATA_ID
+                            inner join   [Prepay].[dbo].[WF_WORKSHEET_GRID_Prepay] as pe
+                            on pe.portalId = WFW.WORKSHEET_DATA_VIEW_ID
+                            where  preapy.uc_1 = @empName and CHECKPOINT_TITLE = '流程結束﹝End﹞' and pe.IsHexiao = 0
+                            union all
+                            SELECT  
+                            rea.CHECKPOINT_TITLE as title,
+                            preapy.WORKSHEET_DATA_ID as id,
+                            wfw.WORKSHEET_DATA_VIEW_ID as pid
+                            FROM [54661506_WF].[dbo].[WF_WORKSHEET_DATA_134] as preapy
+                            inner join  [54661506_WF].[dbo].[WF_ANALYZED_FLOW_PATH_REA]  as rea
+                            on rea.WORKSHEET_DATA_ID = preapy.WORKSHEET_DATA_ID
+                            inner join   [54661506_WF].[dbo].[WF_WORKSHEET_DATA] as WFW
+                            on wfw.WORKSHEET_DATA_ID = rea.WORKSHEET_DATA_ID
+                            inner join   [Prepay].[dbo].[WF_WORKSHEET_GRID_Prepay] as pe
+                            on pe.portalId = WFW.WORKSHEET_DATA_VIEW_ID
+                            where  preapy.uc_1 = @empName and CHECKPOINT_TITLE = '流程結束﹝End﹞' and pe.IsHexiao = 0
+                            GROUP by rea.CHECKPOINT_TITLE ,preapy.WORKSHEET_DATA_ID,wfw.WORKSHEET_DATA_VIEW_ID", 1,
+            new SqlParameter("@empName", SqlDbType.NVarChar) { Value = uName });
+            if (table.Rows.Count <= 0) return null;
+            var list = new List<Prepay>(table.Rows.Count);
+            for (var i = 0; i < table.Rows.Count; i++)
+            {
+                var rows = table.Rows[i];
+                if (rows["title"].ToString() == "流程結束﹝End﹞")
+                {
+                    var pModel = new Prepay
+                    {
+                        portalId = rows["pid"].ToString(),
+                        Id = int.Parse(rows["id"].ToString())
+                    };
+                    list.Add(pModel);
+                }
+            }
+            return list;
+        }
+        #endregion
+        #region 2.0 根據點選的關聯單號查詢費用預支單
+        /// <summary>
+        /// 2.0 根據點選的關聯單號查詢費用預支單
+        /// </summary>
+        /// <param name="extFeeForm">費用預支單單號</param>
+        /// <returns>此次申請單費用預支單</returns>
+        public List<Prepay> GetPrepayData(string extFeeForm)
+        {
+            var sql = @"SELECT pe.Project,
+                    pe.Leixing,pe.Subject,
+                    pe.Bibie,pe.Remark,pe.Count,
+                    pe.portalId FROM [Prepay].[dbo].[WF_WORKSHEET_GRID_Prepay] as pe
+                    where pe.portalId in ({0}) and pe.IsHexiao = 0";
+            sql = string.Format(sql, extFeeForm);
+            var table = SqlHelper.ExecuteDataTable(sql, 1);
+            if (table.Rows.Count <= 0) return null;
+            var listPrepay = new List<Prepay>(table.Rows.Count);
+            for (var i = 0; i < table.Rows.Count; i++)
+            {
+                //此處的幣別已經為文字
+                var rows = table.Rows[i];
+                var preModel = new Prepay()
+                {
+                    Project = rows["Project"].ToString(),
+                    Leixing = rows["Leixing"].ToString(),
+                    Subject = rows["Subject"].ToString(),//GetSelKemuName(int.Parse(rows["Leixing"].ToString()), int.Parse(rows["Subject"].ToString())),
+                    Bibie = rows["Bibie"].ToString(),
+                    Remark = rows["Remark"].ToString(),
+                    Count = PageHelper.GetDoubleType(rows["Bibie"].ToString(), Convert.ToDouble(rows["Count"])),
+                    //IdToText = new GridData() { selText = rows["selText"].ToString() },
+                    portalId = rows["portalId"].ToString()
+                };
+                listPrepay.Add(preModel);
+            }
+            return listPrepay;
+        } 
+        #endregion
+
+        //匯款信息-----------------------------------------------------
+        #region 1.0 新增匯款信息
+        /// <summary>
+        /// 1.0 新增匯款信息
+        /// </summary>
+        /// <param name="reModel">要新增的對象</param>
+        /// <returns>受影響的行數</returns>
+        public bool AddReceiver(Receiver reModel)
+        {
+            var res = SqlHelper.ExecuteNonQuery(@"INSERT INTO [Fee].[dbo].[Receiver]
+                           ([Payment],[People],[Account],[Bank],[Date],[Remark]
+                           ,[FormId],[PortalId],[CreateTime],[UpdateTime],[CreateUser])  
+                            VALUES
+                           (@Payment,@People, @Account, @Bank, @Date, @Remark, @FormId, @PortalId, 
+                           @CreateTime, @UpdateTime,@CreateUser)", 1,
+                         new SqlParameter("@Payment", SqlDbType.NVarChar) { Value = reModel.Payment },
+                         new SqlParameter("@People", SqlDbType.NVarChar) { Value = reModel.People },
+                         new SqlParameter("@Account", SqlDbType.NVarChar) { Value = reModel.Account },
+                         new SqlParameter("@Bank", SqlDbType.NVarChar) { Value = reModel.Bank },
+                         new SqlParameter("@Date", SqlDbType.DateTime) { Value = reModel.Date },
+                         new SqlParameter("@Remark", SqlDbType.NVarChar) { Value = reModel.Remark },
+                         new SqlParameter("@FormId", SqlDbType.NVarChar) { Value = reModel.FormId },
+                         new SqlParameter("@PortalId", SqlDbType.NVarChar) { Value = reModel.PortalId },
+                         new SqlParameter("@CreateTime", SqlDbType.DateTime) { Value = reModel.CreateTime },
+                         new SqlParameter("@UpdateTime", SqlDbType.DateTime) { Value = reModel.UpdateTime },
+                         new SqlParameter("@CreateUser", SqlDbType.NVarChar) { Value = reModel.CreateUser });
+            return res > 0;
+        }
+        #endregion
+        #region 2.0 刪除匯款信息
+        /// <summary>
+        /// 2.0 刪除匯款信息
+        /// </summary>
+        /// <param name="reModel"></param>
+        /// <returns></returns>
+        public bool DelReceiver(Receiver reModel)
+        {
+            int res = SqlHelper.ExecuteNonQuery(@"DELETE FROM [Fee].[dbo].[Receiver]
+                        WHERE ID=@ID", 1, new SqlParameter("@ID", SqlDbType.Int) { Value = reModel.ID });
+            return res > 0;
+        } 
+        #endregion
+        #region 3.0 更新已申請過的匯款信息
+        /// <summary>
+        /// 3.0 更新已申請過的匯款信息
+        /// </summary>
+        /// <param name="reModel"></param>
+        /// <returns></returns>
+        public bool UpdateReceiver(Receiver reModel)
+        {
+            int res = SqlHelper.ExecuteNonQuery(@"UPDATE [Fee].[dbo].[Receiver]
+                       SET [Payment] = @Payment
+                          ,[People] = @People
+                          ,[Account] = @Account
+                          ,[Bank] = @Bank
+                          ,[Date] = @Date
+                          ,[Remark] = @Remark
+                          ,[FormId] = @FormId
+                          ,[PortalId] = @PortalId
+                          ,[UpdateTime] = @UpdateTime WHERE ID=@ID", 1,
+                        new SqlParameter("@Payment", SqlDbType.NVarChar) { Value = reModel.Payment },
+                        new SqlParameter("@People", SqlDbType.NVarChar) { Value = reModel.People },
+                        new SqlParameter("@Account", SqlDbType.NVarChar) { Value = reModel.Account },
+                        new SqlParameter("@Bank", SqlDbType.NVarChar) { Value = reModel.Bank },
+                        new SqlParameter("@Date", SqlDbType.DateTime) { Value = reModel.Date },
+                        new SqlParameter("@Remark", SqlDbType.NVarChar) { Value = reModel.Remark },
+                        new SqlParameter("@FormId", SqlDbType.NVarChar) { Value = reModel.FormId },
+                        new SqlParameter("@PortalId", SqlDbType.NVarChar) { Value = reModel.PortalId },
+                        new SqlParameter("@UpdateTime", SqlDbType.DateTime) { Value = reModel.UpdateTime },
+                        new SqlParameter("@ID", SqlDbType.Int) { Value = reModel.ID });
+            return res > 0;
+        } 
+        #endregion
+        #region 4.0 獲取匯款信息資料
+        /// <summary>
+        /// 4.0 獲取匯款信息資料
+        /// </summary>
+        /// <param name="id">要查詢的id(id FormId PortalId)</param>
+        /// <param name="where">id FormId PortalId</param>
+        /// <param name="flag"></param>
+        /// <returns>查詢到的資料</returns>
+        public List<Receiver> GetReceiver(string id, string where)
+        {
+            var table = SqlHelper.ExecuteDataTable(string.Format(@"Select * from [Fee].[dbo].[Receiver] as re 
+                where re.{0} = @id", @where), 1,
+                new SqlParameter("@id", SqlDbType.NVarChar) { Value = id });
+            if (table.Rows.Count <= 0) return null;
+            var list = new List<Receiver>(table.Rows.Count);
+            for (var i = 0; i < table.Rows.Count; i++)
+            {
+                var rows = table.Rows[i];
+                list.Add(Row2ReModel(rows));
+            }
+            return list;
+        } 
+        #endregion
+        #region 5.0 返回匯款信息對象
+        /// <summary>
+        /// 2.0 返回匯款信息對象
+        /// </summary>
+        /// <param name="rows">查詢到的行</param>
+        /// <param name="flag"></param>
+        /// <returns>匯款信息對象</returns>
+        public Receiver Row2ReModel(DataRow rows)
+        {
+            DateTime? date;
+            if (rows["Date"].ToString().Contains("1970"))
+            {
+                date = null;
+            }
+            else
+            {
+                date = Convert.ToDateTime(rows["Date"].ToString());
+            }
+            return new Receiver()
+            {
+                ID = Convert.ToInt32(rows["ID"].ToString()),
+                Payment = GetPayMentValue(rows["Payment"].ToString().Trim()),
+                People = rows["People"].ToString().Trim() == "" ? "無" : rows["People"].ToString(),
+                Account = rows["Account"].ToString().Trim() == "" ? "無" : rows["Account"].ToString(),
+                Bank = rows["Bank"].ToString().Trim() == "" ? "無" : rows["Bank"].ToString(),
+                Date = date == null ? new Nullable<DateTime>() : Convert.ToDateTime(date.Value.ToShortDateString()),
+                Remark = rows["Remark"].ToString().Trim() == "" ? "無" : rows["Remark"].ToString(),
+                FormId = rows["FormId"].ToString().Trim(),
+                PortalId = rows["PortalId"].ToString().Trim(),
+                CreateTime = Convert.ToDateTime(rows["CreateTime"]),
+                UpdateTime = Convert.ToDateTime(rows["UpdateTime"])
+            };
+        } 
+        #endregion
+        #region 6.0 表單送出後 更新匯款信息
+        /// <summary>
+        /// 6.0 表單送出後 更新匯款信息
+        /// </summary>
+        /// <param name="reModel"></param>
+        /// <returns></returns>
+        public bool UpdateReceiverForSign(Receiver reModel)
+        {
+            var res = SqlHelper.ExecuteNonQuery(@"UPDATE [Fee].[dbo].[Receiver]
+                       SET [PortalId] = @PortalId
+                          ,[UpdateTime] = @UpdateTime WHERE FormId=@FormId", 1,
+                        new SqlParameter("@FormId", SqlDbType.NVarChar) { Value = reModel.FormId },
+                        new SqlParameter("@PortalId", SqlDbType.NVarChar) { Value = reModel.PortalId },
+                        new SqlParameter("@UpdateTime", SqlDbType.DateTime) { Value = reModel.UpdateTime });
+            return res > 0;
+        }
+        #endregion
+        #region 7.0 取得匯款方式 值
+        /// <summary>
+        /// 7.0 取得匯款方式 值
+        /// </summary>
+        /// <param name="paymentText">匯款方式 Text</param>
+        /// <returns>匯款方式 Value</returns>
+        static string GetPayMentValue(string paymentText)
+        {
+            string val;
+            switch (paymentText)
+            {
+                case "員工代墊":
+                    val = "11";
+                    break;
+                case "現金":
+                    val = "12";
+                    break;
+                case "匯款":
+                    val = "13";
+                    break;
+                case "開立支票":
+                    val = "14";
+                    break;
+                default:
+                    val = paymentText;
+                    break;
+            }
+            return val;
+        }
+        #endregion
+
+        //費用預支單---------------
+        #region 1.0 獲取專案項目
+        /// <summary>
+        /// 獲取專案項目
+        /// </summary>
+        /// <param name="projectValue"></param>
+        /// <returns></returns>
+        string GetProjectName(int projectValue)
+        {
+            var obj = SqlHelper.ExecuteScalar(@"SELECT TOP 1 [selText]
+                          FROM [Fee].[dbo].[GridDataProject] as pro
+                          where pro.selValue =  @projectValue", 1, new SqlParameter("@projectValue", SqlDbType.Int) { Value = projectValue });
+            return obj.ToString();
+        }
+        #endregion
+        #region 2.0 獲取預算科目 文字
+        /// <summary>
+        /// 獲取預算科目 文字
+        /// </summary>
+        /// <param name="selLeixing">預算類型selValGroup</param>
+        /// <param name="selSubject">預算科目selSubject</param>
+        /// <returns>預算科目 文字</returns>
+        string GetSelKemuName(int selLeixing, int selSubject)
+        {
+            var obj = SqlHelper.ExecuteScalar(@"SELECT TOP 1 [selText]
+  FROM [Fee].[dbo].[GridDataFee] as gd
+  where gd.selGroup = @selLeixing and gd.selValue = @subject", 1,
+                new SqlParameter("@selLeixing", SqlDbType.Int) { Value = selLeixing },
+                new SqlParameter("@subject", SqlDbType.Int) { Value = selSubject });
+            return obj.ToString();
+        }
+        #endregion
+        #region 3.0 獲取幣別 文字
+        /// <summary>
+        /// 獲取幣別 文字
+        /// </summary>
+        /// <param name="bibieValue">bibieValue</param>
+        /// <returns>幣別 文字</returns>
+        string GetBibieName(int bibieValue)
+        {
+            switch (bibieValue)
+            {
+                case 1:
+                    return "台幣";
+                case 2:
+                    return "港幣";
+                case 3:
+                    return "人民幣";
+                case 4:
+                    return "美金";
+                default:
+                    return "無";
+            }
+        }
+        #endregion
+    }
+}
