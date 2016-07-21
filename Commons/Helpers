@@ -1,0 +1,272 @@
+namespace wegames.WegamesOA.Commons
+{
+    using System;
+    using System.Configuration;
+    using System.IO;
+    using System.Reflection;
+    using System.Web.Mvc;
+    public static class Helper
+    {
+        public static string GetBibieText(this object bibieValue)
+        {
+            if (bibieValue == null) return null;
+            int rid;
+            if (!int.TryParse(bibieValue.ToString(), out rid)) return null;
+            rid = int.Parse(bibieValue.ToString());
+            switch (rid)
+            {
+                case 1:
+                    return "TWD";
+                case 2:
+                    return "CNY";
+                case 3:
+                    return "HKD";
+                case 4:
+                    return "JPY";
+                case 5:
+                    return "USD";
+                case 6:
+                    return "EUR";
+                case 7:
+                    return "KRW";
+                case 8:
+                    return "其他";
+            }
+            return null;
+        }
+        #region  Html下拉框-日期選擇 + MvcHtmlString MakeSelectDay(this HtmlHelper htmlHelper, string id)
+        /// <summary>
+        /// Html下拉框-日期選擇 + MvcHtmlString MakeSelectDay(this HtmlHelper htmlHelper, string id)
+        /// </summary>
+        /// <param name="htmlHelper"></param>
+        /// <param name="id">dom Id</param>
+        /// <returns>日期選擇 下拉框</returns>
+        public static MvcHtmlString MakeSelectDay(this HtmlHelper htmlHelper, string id)
+        {
+            var str = string.Format(@"<select id='{0}' name={0} class='form-control'>
+                                <option value = '0' selected = 'selected' > 請選擇 </ option >
+                                <option value = '1' > 01 </option>
+                                <option value = '2' > 02 </option>
+                                <option value = '3' > 03 </option>
+                                <option value = '4' > 04 </option>
+                                <option value = '5' > 05 </option>
+                                <option value = '6' > 06 </option>
+                                <option value = '7' > 07 </option>
+                                <option value = '8' > 08 </option>
+                                <option value = '9' > 09 </option>
+                                <option value = '10'>10</option>
+                                <option value = '11'>11</option>
+                                <option value = '12'>12</option>
+                                <option value = '13'>13</option>
+                                <option value = '14'>14</option>
+                                <option value = '15'>15</option>
+                                <option value = '16'>16</option>
+                                <option value = '17'>17</option>
+                                <option value = '18'>18</option>
+                                <option value = '19'>19</option>
+                                <option value = '20'>20</option>
+                                <option value = '21'>21</option>
+                                <option value = '22'>22</option>
+                                <option value = '23'>23</option>
+                                <option value = '24'>24</option>
+                                <option value = '25'>25</option>
+                                <option value = '26'>26</option>
+                                <option value = '27'>27</option>
+                                <option value = '28'>28</option>
+                                <option value = '29'>29</option>
+                                <option value = '30'>30</option>
+                                <option value = '31'>31</option>
+                            </ select > ", id);
+            return new MvcHtmlString(str);
+        }
+        #endregion
+        /// <summary>
+        /// 6.0 金額四捨五入至小數 + string GetRoundDecial(this object bibie)
+        /// </summary>
+        /// <param name="count">要轉換的金額</param>
+        /// <returns></returns>
+        public static decimal GetRoundDecialForTotal(this object count)
+        {
+            return System.Math.Round(Convert.ToDecimal(count));
+        }
+    
+
+        #region 獲取財務用幣值(千分位) + string GetCaiwuDecimal(this object bibie)
+        /// <summary>
+        /// 4.0 獲取財務用幣值(千分位)  + string GetCaiwuDecimal(this object bibie)
+        /// </summary>
+        /// <param name="bibie"></param>
+        /// <returns></returns>
+        public static string GetCaiwuDecimal(this object bibie)
+        {
+            return string.Format("{0:N2}", bibie);
+        }
+        #endregion
+        public static string GetHuilvDecimal(this object bibie)
+        {
+            return string.Format("{0:N5}", bibie);
+        }
+        
+        #region 1.0 金額無條件進位 + string GetTwoDecimal(this object bibie)
+        /// <summary>
+        /// 1.0 金額無條件進位 + string GetTwoDecimal(this object bibie)
+        /// </summary>
+        /// <param name="bibie"></param>
+        /// <returns></returns>
+        public static string GetTwoDecimal(this object bibie)
+        {
+            return string.Format("{0:N2}", Math.Ceiling(Convert.ToDecimal(bibie)));
+        }
+        #endregion
+        #region 2.0 獲取財務用金額小數第二位 + string GetDecimal(this object bibie)
+        /// <summary>
+        /// 2.0 金額小數第二位 + string GetDecimal(this object bibie)
+        /// </summary>
+        /// <param name="bibie"></param>
+        /// <returns></returns>
+        public static string GetDecimal(this object bibie)
+        {
+            return string.Format("{0:N2}", bibie); 
+        }
+
+        #endregion
+        #region 3.0 金額四捨五入至小數第二位 + string GetRoundDecial(this object bibie)
+        /// <summary>
+        /// 3.0 金額四捨五入至小數第二位 + string GetRoundDecial(this object bibie)
+        /// </summary>
+        /// <param name="count">要轉換的金額</param>
+        /// <returns></returns>
+        public static string GetRoundDecial(this object count)
+        {
+            return System.Math.Round(Convert.ToDecimal(count)).GetTwoDecimal();
+        }
+        #endregion
+        #region 4.0 字符串轉為整數 + int CheckIdIsInt(this string str)
+        /// <summary>
+        /// 4.0 字符串轉為整數
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static int CheckIdIsInt(this string str)
+        {
+            if (!new System.Text.RegularExpressions.Regex("^[0-9]*[1-9][0-9]*$").IsMatch(str) || string.IsNullOrEmpty(str)) return -1;
+            return Convert.ToInt32(str);
+        }
+        #endregion
+        #region 5.0 驗證是否可將字符串轉為整數 返回 + bool IsNumber(this string strNumber)
+        /// <summary>
+        /// 5.0 驗證是否可將字符串轉為整數 返回 True or False
+        /// </summary>
+        /// <param name="strNumber">要驗證的字符串</param>
+        /// <returns></returns>
+        public static bool IsNumber(this string strNumber)
+        {
+            var r = new System.Text.RegularExpressions.Regex("^([0-9]{1,}[.][0-9]*)$");
+            return r.IsMatch(strNumber);
+        } 
+        #endregion
+        #region 6.0 Html下拉框-月份選擇 + MvcHtmlString MakeSelectMonth(this HtmlHelper htmlHelper, string id)
+        /// <summary>
+        /// Html下拉框-月份選擇 + MvcHtmlString MakeSelectMonth(this HtmlHelper htmlHelper, string id)
+        /// </summary>
+        /// <param name="htmlHelper"></param>
+        /// <param name="id">dom Id</param>
+        /// <returns>月份選擇 下拉框</returns>
+        public static MvcHtmlString MakeSelectMonth(this HtmlHelper htmlHelper, string id)
+        {
+            var str = string.Format(@"<select class='form-control' id='{0}' name='{0}'>
+                        <option value ='0' selected = 'selected' > 請選擇 </ option >
+                        <option value ='1'>01</ option>
+                        <option value ='2'>02</ option>
+                        <option value ='3'>03</ option>
+                        <option value ='4'>04</ option>
+                        <option value ='5'>05</ option>
+                        <option value ='6'>06</ option>
+                        <option value ='7'>07</ option>
+                        <option value ='8'>08</ option>
+                        <option value ='9'>09</ option>
+                        <option value ='10'>10</ option>
+                        <option value ='11'>11</ option>
+                        <option value ='12'>12</ option>
+                        </select > ", id);
+            return new MvcHtmlString(str);
+        }
+        #endregion
+        #region 7.0 將小數值轉換為百分比 + string GetPercent(this object count)
+        /// <summary>
+        /// 7.0 將小數值轉換為百分比
+        /// </summary>
+        /// <param name="count">要轉換的實際數</param>
+        /// <returns>實際數百分比</returns>
+        public static string GetPercent(this object count)// 0.0025000 
+        {
+            var pCount = Convert.ToDecimal(count) * 100;
+            return pCount != 0 ? (pCount).ToString("0.##########") + "%" :"0";
+        }
+        #endregion
+        #region 8.0 分頁控件 + MvcHtmlString PageBarBulider(this HtmlHelper htmlhelper, decimal totalcount)
+        /// 8.0 分頁控件
+        /// </summary>
+        /// <param name="htmlhelper"></param>
+        /// <param name="totalcount">總頁數</param>
+        /// <returns></returns>
+        public static MvcHtmlString PageBarBulider(this HtmlHelper htmlhelper, decimal totalcount)
+        {
+            var html = new System.Text.StringBuilder(1000);
+            html.Append("<li><a href='#' ng-click='getList(1)'> 第一頁</a></li>");
+            html.Append("<li><a href='#' ng-click='getList(-1)' >上一頁</a></li>");
+            for (var j = 1; j <= totalcount; j++)
+            {
+                html.Append("<li><a href='#' id='a" + j + "' ng-click='getList(" + j + ")'> " + j + " </a></li>");
+            }
+            html.Append("<li><a href='#' ng-click='getList(-2)' >下一頁</a></li>");
+            html.Append("<li><a href='#' ng-click='getList(" + totalcount + ")'>最末頁</a></li>");
+            return new MvcHtmlString(html.ToString());
+        }
+        #endregion
+        #region 9.0 獲取財務用金額小數第0位 + string GetDecimal(this object bibie)
+        /// <summary>
+        /// 2.0 金額小數第二位 + string GetDecimal(this object bibie)
+        /// </summary>
+        /// <param name="bibie"></param>
+        /// <returns></returns>
+        public static string GetDecimalNoPoint(this object bibie)
+        {
+            return string.Format("{0:#,##0.##}", bibie);
+        }
+        #endregion
+        #region 10.0 列印畫面獲取公司名稱
+        /// <summary>
+        /// 10.0 列印畫面獲取公司名稱
+        /// </summary>
+        /// <param name="helper"></param>
+        /// <param name="compId"></param>
+        /// <returns></returns>
+        public static string GetPrintCompanyName(this HtmlHelper helper, int compId)
+        {
+            switch (compId)
+            {
+                case 1:
+                    return "唯晶數位娛樂股份有限公司";
+                case 2:
+                    return "日本唯晶數位娛樂股份有限公司";
+                case 3:
+                    return "香港唯晶數位娛樂股份有限公司";
+                default:
+                    return "有錯";
+            }
+        } 
+        #endregion
+        #region 11.0 獲取Appsetting的字符串
+        /// <summary>
+        /// 獲取Appsetting的字符串
+        /// </summary>
+        /// <param name="appsettingName">Appsetting定義的名稱</param>
+        /// <returns>字符串</returns>
+        public static string GetAppsettingValueByName(string appsettingName)
+        {
+            return ConfigurationManager.AppSettings[appsettingName];
+        }
+        #endregion
+    }
+}
