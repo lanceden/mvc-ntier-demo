@@ -1,0 +1,329 @@
+
+		/// <summary>
+		/// 總網站成效
+		/// </summary>
+		/// <param name="context"></param>
+        private void getTrackingData(HttpContext context)
+		{
+			string processDateStart = context.Request["processDateStart"];
+			string processDateEnd = context.Request["processDateEnd"];
+			string Platform = context.Request["Platform"];
+
+			JObject result = new JObject();
+			//JArray list = new JArray();
+
+			// Get data ***先不填日期 測試比較方便
+            DataTable dtPV = SiteTrackingModels.GetPVList(processDateStart, processDateEnd, Platform);
+			DataTable dtVisitor = SiteTrackingModels.GetVisitorList(processDateStart, processDateEnd, Platform);
+			DataTable dtNoActionVisitor = SiteTrackingModels.GetNoActionVisitorList(processDateStart, processDateEnd, Platform);
+
+			Double PV = 0;
+			Double Visitors = 0;
+			Double avgPageView = 0;
+			string avgStaysec = "";
+			Double BounceRate = 0;
+			Double NoActionVisitors = 0;//沒有任何動作的Visitors
+
+            String strResult = "查無資料";
+			String strPVList = "查無資料";
+			String strPVDetail = "";
+			String strVisitorDetail = "";
+
+			avgStaysec = SiteTrackingModels.GetAvgStayTime(processDateStart, processDateEnd, Platform);
+
+			int Index = 1;
+
+			if (dtPV != null)
+			{
+				//參數設定
+                PV = dtPV.Rows.Count;
+				Visitors = dtVisitor.Rows.Count;
+				NoActionVisitors = dtNoActionVisitor.Rows.Count;
+
+				if(Visitors != 0)
+				{
+					avgPageView = PV / Visitors;
+					BounceRate = NoActionVisitors / Visitors;
+				}
+
+				//網站總成效
+                strResult += "<tr>"
+                    + "<td style='border-top:none;border-right:none;border-left:none;'>總網站成效</td>"
+                    + "<td style='border-top:none;border-right:none;border-left:none;'></td>"
+                    + "<td style='border-top:none;border-right:none;border-left:none;'></td>"
+                    + "</tr>";
+				strResult += "<tr>"
+                    + "<td class='TBheader'><nobr>項目</nobr></td>"
+                    + "<td class='TBheader'><nobr>資料</nobr></td>"
+                    + "<td class='TBheader'><nobr>數據</nobr></td>"
+                    +"</tr>";
+				strResult += string.Format("<tr>"
+                    + "<td><nobr>1</nobr></td>"
+                    + "<td><nobr>" + "流量(PV)" + "</nobr></td>"
+                    + "<td><nobr><a href='javascript:' onclick='toPVDetail();'>{0:N0}</a></nobr></td>"
+                    + "</tr>", PV);
+
+				strResult += string.Format("<tr>"
+                    + "<td><nobr>2</nobr></td>"
+                    + "<td><nobr>" + "不重複造訪人次" + "</nobr></td>"
+                    + "<td><nobr><a href='javascript:' onclick='toVisitorDetail();'>{0:N0}</a></nobr></td>"
+                    + "</tr>", Visitors);
+				//不重複造訪人次- 平均瀏覽頁數
+                strResult += string.Format("<tr>"
+                    + "<td><nobr>3</nobr></td>"
+                    + "<td><nobr>" + "不重複造訪人次- 平均瀏覽頁數" + "</nobr></td>"
+                    + "<td><nobr>{0:N2}</nobr></td>"
+                    + "</tr>", avgPageView);
+				//不重複造訪人次- 平均停留時間
+                strResult += "<tr>"
+                    + "<td><nobr>4</nobr></td>"
+                    + "<td><nobr>" + "不重複造訪人次- 平均停留時間" + "</nobr></td>"
+                    + "<td><nobr>" + avgStaysec + "</nobr></td>"
+                    + "</tr>";
+				//跳出率 %
+                strResult += string.Format("<tr>"
+                    + "<td><nobr>5</nobr></td>"
+                    + "<td><nobr>" + "跳出率" + "</nobr></td>"
+                    + "<td><nobr>{0:P}</nobr></td>"
+                    + "</tr>", BounceRate);
+
+				//首/內頁流量 
+                strResult += "<tr>"
+                    + "<td style='border-top:none;border-right:none;border-left:none;'><br/>首/內頁流量</td>"
+                    + "<td style='border-top:none;border-right:none;border-left:none;'></td>"
+                    + "<td style='border-top:none;border-right:none;border-left:none;'></td>"
+                    + "</tr>";
+				strResult += "<tr>"
+                    + "<td class='TBheader'><nobr>項目</nobr></td>"
+                    + "<td class='TBheader'><nobr>頁面</nobr></td>"
+                    + "<td class='TBheader'><nobr>流量</nobr></td>"
+                    + "</tr>";
+
+				//以URI彙整pagename
+                if (dtPV != null && dtPV.Rows.Count > 0)
+				{
+					foreach (DataRow dr in dtPV.Rows)
+					{
+						string strTmp = dr["URI"].ToString();
+						strTmp = strTmp.Replace("http://", "");
+						strTmp = strTmp.Replace("https://", "");
+						if (strTmp.Contains("?"))
+							strTmp = strTmp.Substring(0, strTmp.IndexOf('?'));
+						dr["pagename"] = strTmp;
+
+						//例外檢查
+                        strTmp = strTmp.ToLower();
+						//pagename沒有包含skl字樣的不撈出統計資料
+                        if(!strTmp.Contains("skl"))
+						{
+							dr["pagename"] = "skip me";
+						}
+					}
+				}
+
+				dtPV.DefaultView.Sort = "pagename asc";
+				dtPV.DefaultView.RowFilter = "pagename<> 'skip me'";
+				DataTable dtPageNameList = dtPV.DefaultView.ToTable(true, "pagename");
+				//區分大小寫
+                dtPageNameList.CaseSensitive = true;
+				dtPV.CaseSensitive = true;
+				if (dtPageNameList != null && dtPageNameList.Rows.Count > 0)
+				{
+					//設定資料源
+
+					//輸出
+                    foreach (DataRow dr in dtPageNameList.Rows)
+					{
+						string pagename = dr["pagename"].ToString();
+						string link = "";
+
+						DataRow[] drPagePVList = dtPV.Select("pagename='" + pagename + "'");
+
+						if (drPagePVList.Length >= 1)
+							link = drPagePVList[0]["URI"].ToString();
+
+						strPVList += String.Format("<tr>"
+                        + "<td><nobr>" + Index.ToString() + "</nobr></td>"
+                        + "<td><nobr><a href='" + link + "' target='_blank'>" + pagename + "</a></nobr></td>"
+                        + "<td><nobr>{0:N0}</nobr></td>"
+                        + "</tr>", drPagePVList.Length);
+
+						Index++;
+					}
+				}
+
+				strResult += strPVList.ToString();
+
+				//PV 明細
+                Index = 1;                
+                foreach (DataRow dr in dtPV.Rows)
+                {
+                    string strTmp = dr["httpreferer"].ToString();
+                    strTmp = strTmp.Replace("http://", "");
+                    strTmp = strTmp.Replace("https://", "");
+                    if(strTmp.Contains("/"))
+                        strTmp = strTmp.Substring(0, strTmp.IndexOf('/'));
+                    dr["httpreferer"] = strTmp;
+                }
+
+                DataTable dtPVList = dtPV.DefaultView.ToTable(true, "httpreferer");
+                dtPVList.DefaultView.Sort = "httpreferer desc";
+                dtPVList = dtPVList.DefaultView.ToTable(true, "httpreferer");
+
+                strPVDetail += "<table id=\"resultTable\" width=\"100%\" border=\"1\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:none;\">";
+                strPVDetail += "<thead>"
+                    + "<th ><nobr>項目</nobr></td>"
+                    + "<th ><nobr>來源網站</nobr></td>"
+                    + "<th ><nobr>流量</nobr></td>"
+                    + "</thead>";
+                foreach (DataRow dr in dtPVList.Rows)
+                {
+                    string httpreferer = dr["httpreferer"].ToString();
+                    string strWhere = "";
+                    if (httpreferer != "")
+                    {
+                        //strWhere = "httpreferer like '%" + httpreferer + "%'";
+                        strWhere = "httpreferer = '" + httpreferer + "'";  //統計該httpreferer數量
+                    }
+                    else {
+                        strWhere = "httpreferer = '' or httpreferer is null";
+                    }
+
+                    if (httpreferer == "")//設定空值 =>其他
+                        httpreferer = "其他";
+                    DataRow[] drPVList = dtPV.Select(strWhere);
+                    strPVDetail += String.Format("<tr>"
+                    + "<td><nobr>" + Index.ToString() + "</nobr></td>"
+                    + "<td><nobr>" + httpreferer + "</nobr></td>"
+                    + "<td><nobr>{0:N0}</nobr></td>"
+                    + "</tr>",drPVList.Length);
+                    Index++;
+                }
+                strPVDetail += "</table>";
+
+                //VisitorDetail
+                DataTable dtVisitorDetail = dtVisitor.DefaultView.ToTable();
+                string[] platFormList = SiteTrackingModels.GetPlatformList();
+                string[,] broswerList = SiteTrackingModels.GetBrowserList();
+                Double broswerOther = dtVisitorDetail.Rows.Count;//瀏覽器 - 其他
+                Double platFormOther = dtVisitorDetail.Rows.Count;//作業系統 - 其他
+
+                strVisitorDetail += "<table id=\"resultTable\" width=\"100%\" border=\"1\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:none;\">";
+                strVisitorDetail += "<thead>"
+                    + "<th style='border:none;background:white;'></th>"
+                    + "<th style='border:none;background:white;'></th>"
+                    + "<th style='border:none;background:white;'></th>"
+                    + "</thead>";
+
+                //瀏覽器
+                Index = 1;
+                strVisitorDetail += "<tr>"
+                    + "<td style='border-top:none;border-right:none;border-left:none;'><br/>瀏覽器</td>"
+                    + "<td style='border-top:none;border-right:none;border-left:none;'><nobr></nobr></td>"
+                    + "<td style='border-top:none;border-right:none;border-left:none;'><nobr></nobr></td>"
+                    + "</tr>";
+                strVisitorDetail += "<tr>"
+                    + "<th class='TBheader'>項目</th>"
+                    + "<th class='TBheader'>瀏覽器</th>"
+                    + "<th class='TBheader'>使用人數</th>"
+                    + "</tr>";
+
+                int browserCount = broswerList.GetLength(0);//取得第一維數量(瀏覽器種類數)
+                for (int j = 0; j < browserCount; j++)
+                {
+                    string strWhere = "";
+                    string strBroswerName = "";
+                    string strValue;
+
+                    if (broswerList[j,0] != "other")
+                    {
+                        strBroswerName = broswerList[j, 0];
+                        strWhere = broswerList[j, 1];
+                    }
+                    else
+                    {
+                        strBroswerName = "其他";
+                        strWhere = broswerList[j, 1];
+                    }
+
+                    DataRow[] drVisitorDetail = dtVisitorDetail.Select(strWhere);
+
+                    if (strWhere != "")//設定Value
+                    {
+                        strValue = string.Format("{0:N0}", drVisitorDetail.Length);
+                        broswerOther -= drVisitorDetail.Length;//other為總數扣掉其他類後的值
+                    }
+                    else
+                    {
+                        strValue = string.Format("{0:N0}", broswerOther); ;
+                    }
+
+                    strVisitorDetail += "<tr>"
+                    + "<td><nobr>" + Index.ToString() + "</nobr></td>"
+                    + "<td><nobr>" + strBroswerName + "</nobr></td>"
+                    + "<td><nobr>" + strValue + "</nobr></td>"
+                    + "</tr>";
+
+                    Index++;
+                }
+
+                //作業系統
+                Index = 1;
+                //Header
+                strVisitorDetail += "<tr>"
+                    + "<td style='border-top:none;border-right:none;border-left:none;'><br/>作業系統</td>"
+                    + "<td style='border-top:none;border-right:none;border-left:none;'><nobr></nobr></td>"
+                    + "<td style='border-top:none;border-right:none;border-left:none;'><nobr></nobr></td>"
+                    + "</tr>";
+                strVisitorDetail += "<tr>"
+                    + "<th class='TBheader'>項目</th>"
+                    + "<th class='TBheader'>作業系統</th>"
+                    + "<th class='TBheader'>使用人數</th>"
+                    + "</tr>";
+                foreach (string platForm in platFormList)
+                {
+                    string strWhere = "";
+                    string strPlatformName = "";
+                    string strValue = "";
+
+                    if (platForm != "other")
+                    {
+                        strWhere = "user_agent like '%" + platForm + "%'";
+                        strPlatformName = platForm;
+                    }
+                    else
+                    {
+                        strWhere = "";
+                        strPlatformName = "其他";
+                    }
+
+                    DataRow[] drVisitorDetail = dtVisitorDetail.Select(strWhere);
+
+                    if (strWhere != "")//設定Value
+                    {
+                        strValue = string.Format("{0:N0}", drVisitorDetail.Length);
+                        platFormOther -= drVisitorDetail.Length;//other為總數扣掉其他類後的值
+                    }
+                    else
+                    {
+                        strValue = string.Format("{0:N0}", platFormOther);
+                    }
+
+                    strVisitorDetail += "<tr>"
+                    + "<td><nobr>" + Index.ToString() + "</nobr></td>"
+                    + "<td><nobr>" + strPlatformName + "</nobr></td>"
+                    + "<td><nobr>" + strValue + "</nobr></td>"
+                    + "</tr>";
+                    Index++;
+                }
+                strVisitorDetail += "</table>";
+                
+            }//end if (data != null)
+
+            result.Add("WebPerformanc", strResult);
+            result.Add("PVDetail", strPVDetail);
+            result.Add("VisitorDetail", strVisitorDetail);
+            result.Add("Code", "OK");
+
+            context.Response.Write(JsonConvert.SerializeObject(result));
+        }
