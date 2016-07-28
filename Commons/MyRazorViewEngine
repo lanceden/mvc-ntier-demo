@@ -52,3 +52,10 @@ namespace wegames.WegamesOA.MVCFactorys
         }
     }
 }
+
+之後要在Global.asax 添加下面的兩行
+protected void Application_Start()
+{
+    ViewEngines.Engines.Clear();
+    ViewEngines.Engines.Add(new CustomViewEngine());
+}
