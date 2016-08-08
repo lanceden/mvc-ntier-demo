@@ -1,0 +1,59 @@
+#region 各表單平均簽核天數 + ActionResult GetSignTimeSignle()
+        /// <summary>
+        /// 呈現各表單平均簽核天數 All in one
+        /// </summary>
+         [HttpPost]
+        [AdminCheck]
+        public async Task<ActionResult> GetSignTimeSignle()
+        {
+            var dataList = new List<CharModel>();
+            await this.GetFormDateSingle(160).ContinueWith(s => { dataList.AddRange(s.Result); });
+            await this.GetFormDateSingle(158).ContinueWith(s => { dataList.AddRange(s.Result); });
+            await this.GetFormDateSingle(161).ContinueWith(s => { dataList.AddRange(s.Result); });
+            await this.GetFormDateSingle(112).ContinueWith(s => { dataList.AddRange(s.Result); });
+            await this.GetFormDateSingle(109).ContinueWith(s => { dataList.AddRange(s.Result); });
+            await this.GetFormDateSingle(131).ContinueWith(s => { dataList.AddRange(s.Result); });
+            await this.GetFormDateSingle(143).ContinueWith(s => { dataList.AddRange(s.Result); });
+            await this.GetFormDateSingle(145).ContinueWith(s => { dataList.AddRange(s.Result); });
+            await this.GetFormDateSingle(75).ContinueWith(s => { dataList.AddRange(s.Result); });
+            return WriteJsonOk("成功取回", dataList); //dataList [160,1,0.44],[158,1,22], [160,2,0.44],[158,2,22]
+        }
+        #endregion
+        #region 獲取總表單年度每月的平均完成核淮天數 +  Task<Dictionary<int, string>> GetFormDateSingle(int year, int worksheetId)
+        /// <summary>
+        /// 獲取表單年度每月的平均完成核淮天數
+        /// </summary>
+        /// <param name="worksheetId">單別ID</param>
+        /// <returns></returns>
+        async Task<List<CharModel>> GetFormDateSingle(int worksheetId)
+        {
+            //1.0 獲取所有表單詳細資料
+            if (_singTimeSingleList.Count <= 0)
+                _singTimeSingleList = _wgAdminMenuService.RunSql<FormDetail>("exec usp_WG_GetFormDetailSingle @year",
+                    new SqlParameter("@year", SqlDbType.Int) { Value = _year }).ToList();
+            //2.1 啟動新的線程執行非同步方法
+            return await Task.Run(() =>
+            {
+                var dataList = new List<CharModel>();
+                //2.1 獲取全部表單的總張數 By 月份  1~12月
+                var totalFormCount = _wgAdminMenuService.RunSql<FormTotalCount>("exec  usp_WG_GetFormTotalCount @year,@worksheetId",
+                        new SqlParameter("@year", System.Data.SqlDbType.Int) { Value = _year },
+                        new SqlParameter("@worksheetId", System.Data.SqlDbType.Int) { Value = worksheetId }).ToList();
+                //3.0 獲取當前月份
+                for (var i = 1; i <= _month; i++)
+                {
+                    float totalCount = totalFormCount.Where(s => s.NowMonth == i).Select(s => s.TotalFormCount).FirstOrDefault();
+                    dataList.Add(new CharModel()
+                    {
+                        FormType = worksheetId,
+                        Month = i,
+                        Days = totalCount > 0 ? ((from p in _singTimeSingleList
+                                                  where p.CreateDate.Month == i && p.WorksheetId == worksheetId
+                                                  select p).Select(s => s.DiffTime).Sum() / 86400.0 / totalCount) : totalCount
+                    });
+                }
+                return dataList.Count > 0 ? dataList : null;
+            });
+
+        }
+        #endregion
