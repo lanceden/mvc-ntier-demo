@@ -1,0 +1,145 @@
+
+            //1.0 模擬請求完核心ESB156的資料
+            var f = new GridDataProject[]
+            {
+                new GridDataProject()
+                {
+                    selValue = 15,selGroup = 0,selText = "Test1"
+                },
+                new GridDataProject()
+                {
+                    selValue = 15,selGroup = 0,selText = "Test1"
+                },
+                new GridDataProject()
+                {
+                    selValue = 15,selGroup = 0,selText = "Test1"
+                }
+            };
+            //1.1 將核心資料轉為List
+            var t = f.ToList();
+            var dataList = new List<GridDataProject>()
+            {
+                new GridDataProject()
+                {
+                    selValue = 15,selGroup = 0,selText = "Test1"
+                },
+                new GridDataProject()
+                {
+                    selValue = 16,selGroup = 0,selText = "Test2"
+                },
+                new GridDataProject()
+                {
+                    selValue = 17,selGroup = 0,selText = "Test3"
+                }
+            };
+            //1.2 將轉換為List資料後的核心資料轉為DataTable(這裡的where可以過濾條件,上次開會是說只新增近三個月的)
+            var dt = dataList.Where(s => s.id > 0).ListToDataTable();
+            //1.3 開始BulkCopy
+            var connStr = System.Configuration.ConfigurationManager.ConnectionStrings["connStr"].ConnectionString;
+            using (var conn = new SqlConnection(connStr))
+            {
+                conn.Open();
+                var bulkcopy = new SqlBulkCopy(conn) { DestinationTableName = dt.TableName };
+                try
+                {
+                    bulkcopy.WriteToServer(dt);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
+                } 
+            }
+            Console.ReadLine();
+			
+----------------------------------
+
+public static class DataTableAndListExtensions
+    {
+
+        public static DataTable ListToDataTable<TResult>(this IEnumerable<TResult> listValue) where TResult : class, new()
+        {
+            var dataTable = new DataTable(typeof(TResult).Name);
+
+            //Get all the properties
+            var props = typeof(TResult).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            foreach (var prop in props)
+            {
+                //Setting column names as Property names
+                dataTable.Columns.Add(prop.Name);
+            }
+            foreach (var item in listValue)
+            {
+                var values = new object[props.Length];
+                for (var i = 0; i < props.Length; i++)
+                {
+                    //inserting property values to datatable rows
+                    values[i] = props[i].GetValue(item, null);
+                }
+                dataTable.Rows.Add(values);
+            }
+            //put a breakpoint here and check datatable
+            return dataTable;
+
+            #region Old
+            ////建立一個回傳用的 DataTable
+            //var dt = new DataTable();
+            ////取得映射型別
+            //var type = typeof(TResult);
+            ////宣告一個 PropertyInfo 陣列，來接取 Type 所有的共用屬性
+            //PropertyInfo[] piList = null;
+            //foreach (var item in listValue)
+            //{
+            //    //判斷 DataTable 是否已經定義欄位名稱與型態
+            //    if (dt.Columns.Count == 0)
+            //    {
+            //        //取得 Type 所有的共用屬性
+            //        piList = item.GetType().GetProperties();
+
+            //        //將 List 中的 名稱 與 型別，定義 DataTable 中的欄位 名稱 與 型別
+            //        foreach (var item1 in piList)
+            //        {
+            //            dt.Columns.Add(item1.Name, item1.PropertyType);
+            //        }
+            //    }
+            //    //在 DataTable 中建立一個新的列
+            //    var dr = dt.NewRow();
+            //    //將資料足筆新增到 DataTable 中
+            //    foreach (var item2 in piList)
+            //    {
+            //        dr[item2.Name] = item2.GetValue(item, null);
+            //    }
+            //    dt.Rows.Add(dr);
+            //}
+            //dt.AcceptChanges();
+            //return dt; 
+            #endregion
+        }
+
+        public static List<TResult> DataTableToList<TResult>(this DataTable dataTableValue) where TResult : class, new()
+        {
+            //建立一個回傳用的 List<TResult>
+            var resultList = new List<TResult>();
+
+            //取得映射型別
+            var type = typeof(TResult);
+
+            //儲存 DataTable 的欄位名稱
+            var prList = type.GetProperties().Where(item => dataTableValue.Columns.IndexOf(item.Name) != -1).ToList();
+
+            //足筆將 DataTable 的值新增到 List<TResult> 中
+            foreach (DataRow item in dataTableValue.Rows)
+            {
+                TResult tr = new TResult();
+
+                foreach (PropertyInfo item1 in prList)
+                {
+                    if (item[item1.Name] != DBNull.Value)
+                        item1.SetValue(tr, item[item1.Name], null);
+                }
+
+                resultList.Add(tr);
+            }
+
+            return resultList;
+        }
+    }
