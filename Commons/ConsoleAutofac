@@ -1,0 +1,13 @@
+
+            // Create your builder.
+            var builder = new ContainerBuilder();
+            builder.RegisterAssemblyTypes(Assembly.Load("ConsoleApplication2.IRepository")).AsImplementedInterfaces();
+            builder.RegisterAssemblyTypes(Assembly.Load("ConsoleApplication2.Repository")).AsImplementedInterfaces();
+
+            Container = builder.Build();
+            using (var scope = Container.BeginLifetimeScope())
+            {
+                var u = scope.Resolve<IUserInfo>();
+                u.GetList().ForEach(Console.WriteLine);
+                Console.ReadLine();
+            }
