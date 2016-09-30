@@ -1,0 +1,59 @@
+<div class="container">
+    <img src="@Url.Content("~/Test/GetFile/1")" width="200" />
+    <form action="@Url.Action("Upload")" method="post" enctype="multipart/form-data">
+        <label for="file">Filename:</label>
+        <input type="file" name="file" id="file"/>
+        <input type="submit"/>
+    </form>
+</div>
+
+
+        #region 獲取圖檔
+        /// <summary>
+        /// 獲取圖檔 - GetFile(int id)
+        /// </summary>
+        /// <returns></returns>
+        public ActionResult GetFile()
+        {
+            var con = new SqlConnection("Data Source=.;Initial Catalog=tfmi;User Id=sa;pwd=123456");
+            var sqlStr = @"SELECT *  FROM [tfmi].[dbo].[TF_Image]";
+            con.Open();
+            var da = new SqlDataAdapter("Select * from TF_Image where TF_ImgId = 1", con);
+            var ds = new DataSet();
+            da.Fill(ds);
+            if (ds.Tables[0].Rows.Count > 0)
+            {
+                var photo = (byte[])ds.Tables[0].Rows[0][1];
+                return File(photo, "image/jpeg");
+            }
+            return new EmptyResult();
+        } 
+        #endregion
+        #region 上傳圖檔
+        /// <summary>
+        /// 上傳圖檔
+        /// </summary>
+        /// <param name="file">要上傳的檔案</param>
+        /// <returns></returns>
+        [HttpPost]
+        public ActionResult Upload(HttpPostedFileBase file)
+        {
+            if (file.ContentLength > 0)
+            {
+                var fileName = Path.GetFileName(file.FileName);
+                var path = Path.Combine(Server.MapPath("~/FileUploads"), fileName);
+                var con = new SqlConnection("Data Source=.;Initial Catalog=tfmi;User Id=sa;pwd=123456");
+                var sqlStr = @"INSERT INTO [dbo].[TF_Image]
+                       ([TF_ImgFile]) VALUES (@TF_ImgFile)";
+                var fs = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                var rawbyte = new byte[fs.Length];
+                fs.Read(rawbyte, 0, Convert.ToInt32(fs.Length));
+                con.Open();
+                var cmd = new SqlCommand(sqlStr, con);
+                cmd.Parameters.AddWithValue("@TF_ImgFile", rawbyte);
+                var rows = cmd.ExecuteNonQuery();
+                file.SaveAs(path);
+            }
+            throw new NotImplementedException();
+        } 
+        #endregion
