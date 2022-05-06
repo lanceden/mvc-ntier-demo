@@ -167,3 +167,18 @@ namespace bpmNotify
     }
 
 }
+
+/*
+目前剩下的那個問題是 發生在 使用者假設輸入了10張照片要比對 如果第二張照片不符合規則(例如:給了空白照片)  那就直接ERROR 後面的照片就全部不比對了
+所以要再弄個流程控制~
+您已經成功地從 林承諺 收到 SignatureVerification.7z。檔案位於 C:\Users\ek1008\Documents\我已接收的檔案。強烈建議您先用防毒軟體掃描一下，再開啟這個檔案。
+林承諺 下午 02:25
+他的錯誤發生位置在 src/detection/loader.py 第88行 傳遞到 src/service/instances.py 第182行 再傳到 app.py 第211行 
+鄧羽翔 下午 02:26
+我看一下
+林承諺 下午 02:30
+loader.py簡單講就是 他會計算 模型抓的位置是文字的機率為多少 並取出最高的機率 並還原出張量(照片位置) 最後將照片的四個角的座標return出來
+林承諺 下午 02:32
+instances.py就會去把return直接起來 並丟到簽名辨識的model去執行 然而前一顆model回傳的資料為空值 根本丟不進去第二顆model 所以產生ERROR
+
+*/
