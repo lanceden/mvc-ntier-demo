@@ -28,21 +28,33 @@ namespace bpmNotify
         {
             MemoryStream ms = new MemoryStream(source);
             Image ret = Image.FromStream(ms);
-            ret.Save("test.tif");
+            ret.Save("test33.tif");
         }
 
+        public static void byteArrayToFile(byte[] source)
+        {
+            MemoryStream ms = new MemoryStream(source);
+            System.IO.File.WriteAllBytes("ect.txt", source);
+        }
+
+        public static void byteArrayToZip(byte[] source)
+        {
+            MemoryStream ms = new MemoryStream(source);
+            System.IO.File.WriteAllBytes("ect.zip", source);
+        }
 
         static void Main(string[] args)
         {
-            byte[] imageArray = System.IO.File.ReadAllBytes(@"./96057080_23895858_A010000__001.tif");
-            string base64ImageRepresentation = Convert.ToBase64String(imageArray);
+            byte[] imageArray = System.IO.File.ReadAllBytes(@"./ect.txt");
+            //string base64ImageRepresentation = Convert.ToBase64String(imageArray);
 
 
 
             var tt = new Aes256Crypto("23895858");
-            var rr = tt.DecryptString(base64ImageRepresentation);
-            var gg = tt.DecryptByteArray(imageArray);
-            byteArrayToImage(gg);
+            //var ss = tt.EncryptByteArray(imageArray);
+            //byteArrayToFile(ss);
+            var rr = tt.DecryptByteArray(imageArray);
+            byteArrayToZip(rr);
 
             //System.IO.File.WriteAllText(@"C:\Users\ek1008\source\repos\bpmRecognize\bpmNotify\bin\Debug\test.txt", "test");
             // 讀取XML傳送Api資料
