@@ -180,5 +180,6 @@ namespace bpmNotify
 loader.py簡單講就是 他會計算 模型抓的位置是文字的機率為多少 並取出最高的機率 並還原出張量(照片位置) 最後將照片的四個角的座標return出來
 林承諺 下午 02:32
 instances.py就會去把return直接起來 並丟到簽名辨識的model去執行 然而前一顆model回傳的資料為空值 根本丟不進去第二顆model 所以產生ERROR
+第一顆model在做圖片的簽名位置擷取 第二顆在做圖片的文字辨識
 
 */
