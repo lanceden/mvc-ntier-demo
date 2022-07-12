@@ -8,21 +8,13 @@
 2. Dependency injection with Autofac
 3. Video Preview Online
 
-羽翔 好，
-跟您約6/23的13:30~14:30的時間討論，若有問題的話麻煩再跟我說，
-Teams會議連結在最下方▼
 
-預計討論以下事項：
-1.	金控方面現況說明
-2.	追蹤目前進度
-3.	討論遇到的困難及需要的資源/課程
-4.	實習生參與問題討論
-5.	討論主題未來的MileStone
-6.	其他(有想到都可以討論)
 
-________________________________________________________________________________ 
-Microsoft Teams 會議 
-在您的電腦或行動裝置應用程式上加入 
-按一下這裡以加入會議 
-深入了解 | 會議選項 
-_____________ 
+2022/7/14 (週四) 上午 11:00
+
+
+https://teams.microsoft.com/l/meetup-join/19%3ameeting_MTI5M2Q0OTktN2M5NS00ZWI4LTg1ZWMtMGZlNzU1NTE0ODNh%40thread.v2/0?context=%7b%22Tid%22%3a%22e3492d0a-308e-4635-9d55-996f5fad54f3%22%2c%22Oid%22%3a%220e88349a-2ef2-4e45-abf0-20d8d218da56%22%7d
+
+或輸入會議室識別碼加入
+會議識別碼: 415 773 307 676 
+密碼: qHPmo2 
