@@ -10,11 +10,19 @@
 
 
 
-2022/7/14 (週四) 上午 11:00
+Dear ALL，
 
+跟大家預約個時間討論DevOps及MLOps後續內容：
+根據討論進度/內容有機率會稍微比15:30稍微晚一點，
+討論內容如下：
 
-https://teams.microsoft.com/l/meetup-join/19%3ameeting_MTI5M2Q0OTktN2M5NS00ZWI4LTg1ZWMtMGZlNzU1NTE0ODNh%40thread.v2/0?context=%7b%22Tid%22%3a%22e3492d0a-308e-4635-9d55-996f5fad54f3%22%2c%22Oid%22%3a%220e88349a-2ef2-4e45-abf0-20d8d218da56%22%7d
+1、分享目前研究進度 - 羽翔
+2、分享Azure Board使用(實際建立/操作) - 柏學
+3、定義羽翔8/26檢視及呈現內容 - 阿哲
+4、分享完整DevOps架構想法 - 阿哲
+5、對討論過成的建議/補充/提醒 - SAM、ALL
 
-或輸入會議室識別碼加入
-會議識別碼: 415 773 307 676 
-密碼: qHPmo2 
+會議連結如下：
+https://meet152.webex.com/meet152-tc/j.php?MTID=m34bf1fd933b8af4140d6032a32fa24ea
+密碼：
+0000
