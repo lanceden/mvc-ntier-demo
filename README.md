@@ -9,6 +9,8 @@
 3. Video Preview Online
 
 ---
+2022/12/14 (週三) 上午 09:00
+2022/12/14 (週三) 上午 10:30
 
 會議鏈結：
 https://chaokaifu.my.webex.com/chaokaifu.my-tc/j.php?MTID=me14d6e123ce1fc8cbb0c32fc73126c0a 
