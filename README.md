@@ -29,3 +29,19 @@ NULL DEFAULT NULL;
 
 
 ---
+
+https://test-impcust.skl.com.tw/sub/Views/SKL/VIP.zip
+https://test-impcust.skl.com.tw/sub/Views/SKL/VIP-API.zip
+https://test-impcust.skl.com.tw/sub/Views/SKL/CheckList-V6.xlsx
+https://test-impcust.skl.com.tw/sub/Views/SKL/new.xlsx
+https://test-impcust.skl.com.tw/sub/Views/SKL/kpi.xlsx
+https://test-impcust.skl.com.tw/sub/Views/SKL/SignatureVerificationV3_Prod.zip
+
+-- 查詢排程工作
+schtasks |more
+-- 設定排程(五分鐘一次)
+schtasks /create /tn bpmTask /tr C:\Users\ek1008\source\repos\bpmRecognize\bpmNotify\bin\Debug\bpmNotify.exe /sc minute /mo 15
+-- 設定排程(立即執行，需更改時間)
+schtasks /create /tn bpmTask2 /tr C:\Users\ek1008\source\repos\bpmRecognize\bpmNotify\bin\Debug\bpmNotify.exe /sc once /st 17:22
+-- 刪除排程
+schtasks /delete /tn 排程名稱
